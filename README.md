@@ -20,3 +20,10 @@ mvn clean package
 ```
 
 The server jar is written to `server/target/blaze.jar`.
+
+## License
+
+Original Blaze code is proprietary and requires a commercial license for
+business use. The project also contains GPLv3 code from Bukkit, Spigot, and
+CraftBukkit. Those parts remain under GPLv3. See `LICENSE.txt`,
+`LICENSE-GPL-3.0.txt`, and `NOTICE`.

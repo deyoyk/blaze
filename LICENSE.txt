@@ -1,27 +1,30 @@
-BSD License
+Blaze Commercial License 1.0
 
-Copyright (c) 2000-2006, www.hamcrest.org
-All rights reserved.
+Copyright (c) 2026 deyoyk. All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+This license applies to the original Blaze code in this repository, including
+the lol/deyo/blaze packages and original Blaze configuration and resources.
 
-Redistributions of source code must retain the above copyright notice, this list of
-conditions and the following disclaimer. Redistributions in binary form must reproduce
-the above copyright notice, this list of conditions and the following disclaimer in
-the documentation and/or other materials provided with the distribution.
+Permission is granted to view, compile, and use this original code for personal,
+non-commercial purposes.
 
-Neither the name of Hamcrest nor the names of its contributors may be used to endorse
-or promote products derived from this software without specific prior written
-permission.
+Commercial use is not permitted without a separate written commercial license
+from the copyright holder. Commercial use includes selling, licensing, renting,
+or distributing the original code or a product that contains it, and operating
+a paid service that uses it.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
-EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
-WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGE.
+Redistribution of the original source code or compiled binaries is not permitted
+without prior written permission, except as required by applicable law or by the
+GPLv3 for GPL-covered portions.
+
+This license does not apply to third-party or upstream code. Bukkit, Spigot,
+CraftBukkit, Minecraft server code, and other third-party components remain
+under their original licenses. In particular, GPLv3-covered portions remain
+under GPLv3, and nothing in this license limits rights granted by GPLv3 for
+those portions. See LICENSE-GPL-3.0.txt and NOTICE.
+
+THE ORIGINAL CODE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
+FROM THE USE OF THE ORIGINAL CODE.
