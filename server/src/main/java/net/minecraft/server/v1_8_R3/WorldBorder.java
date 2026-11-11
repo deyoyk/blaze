@@ -167,6 +167,58 @@ public class WorldBorder {
       }
    }
 
+   public void follow(WorldBorder source) {
+      double size = source.getSize();
+      long remaining = source.i();
+      if (remaining > 0L) {
+         this.transitionSizeBetween(size, source.j(), remaining);
+      } else {
+         this.setSize(size);
+      }
+
+      this.setCenter(source.getCenterX(), source.getCenterZ());
+      this.setDamageAmount(source.getDamageAmount());
+      this.setDamageBuffer(source.getDamageBuffer());
+      this.setWarningDistance(source.getWarningDistance());
+      this.setWarningTime(source.getWarningTime());
+      source.a(new IWorldBorderListener() {
+         @Override
+         public void a(WorldBorder border, double value) {
+            WorldBorder.this.setSize(value);
+         }
+
+         @Override
+         public void a(WorldBorder border, double start, double end, long time) {
+            WorldBorder.this.transitionSizeBetween(start, end, time);
+         }
+
+         @Override
+         public void a(WorldBorder border, double x, double z) {
+            WorldBorder.this.setCenter(x, z);
+         }
+
+         @Override
+         public void a(WorldBorder border, int time) {
+            WorldBorder.this.setWarningTime(time);
+         }
+
+         @Override
+         public void b(WorldBorder border, int distance) {
+            WorldBorder.this.setWarningDistance(distance);
+         }
+
+         @Override
+         public void b(WorldBorder border, double amount) {
+            WorldBorder.this.setDamageAmount(amount);
+         }
+
+         @Override
+         public void c(WorldBorder border, double buffer) {
+            WorldBorder.this.setDamageBuffer(buffer);
+         }
+      });
+   }
+
    public void a(int i) {
       this.h = i;
    }

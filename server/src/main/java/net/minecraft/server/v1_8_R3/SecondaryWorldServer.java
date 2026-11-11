@@ -33,6 +33,11 @@ public class SecondaryWorldServer extends WorldServer {
          this.villages.a(this);
       }
 
-      return super.b();
+      super.b();
+      if (this.a != null) {
+         this.getWorldBorder().follow(this.a.getWorldBorder());
+      }
+
+      return this;
    }
 }
