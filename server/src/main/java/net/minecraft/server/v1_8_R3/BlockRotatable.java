@@ -1,0 +1,13 @@
+package net.minecraft.server.v1_8_R3;
+
+public abstract class BlockRotatable extends Block {
+   public static final BlockStateEnum<EnumDirection.EnumAxis> AXIS = BlockStateEnum.of("axis", EnumDirection.EnumAxis.class);
+
+   protected BlockRotatable(Material var1) {
+      super(var1, var1.r());
+   }
+
+   protected BlockRotatable(Material var1, MaterialMapColor var2) {
+      super(var1, var2);
+   }
+}

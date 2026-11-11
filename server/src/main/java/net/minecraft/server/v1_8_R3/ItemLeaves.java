@@ -1,0 +1,22 @@
+package net.minecraft.server.v1_8_R3;
+
+public class ItemLeaves extends ItemBlock {
+   private final BlockLeaves b;
+
+   public ItemLeaves(BlockLeaves var1) {
+      super(var1);
+      this.b = var1;
+      this.setMaxDurability(0);
+      this.a(true);
+   }
+
+   @Override
+   public int filterData(int var1) {
+      return var1 | 4;
+   }
+
+   @Override
+   public String e_(ItemStack var1) {
+      return super.getName() + "." + this.b.b(var1.getData()).d();
+   }
+}

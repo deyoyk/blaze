@@ -1,0 +1,75 @@
+package net.minecraft.server.v1_8_R3;
+
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class CommandBanIp extends CommandAbstract {
+   public static final Pattern a = Pattern.compile(
+      "^([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.([01]?\\d\\d?|2[0-4]\\d|25[0-5])$"
+   );
+
+   @Override
+   public String getCommand() {
+      return "ban-ip";
+   }
+
+   @Override
+   public int a() {
+      return 3;
+   }
+
+   @Override
+   public boolean canUse(ICommandListener var1) {
+      return MinecraftServer.getServer().getPlayerList().getIPBans().isEnabled() && super.canUse(var1);
+   }
+
+   @Override
+   public String getUsage(ICommandListener var1) {
+      return "commands.banip.usage";
+   }
+
+   @Override
+   public void execute(ICommandListener var1, String[] var2) throws CommandException {
+      if (var2.length >= 1 && var2[0].length() > 1) {
+         IChatBaseComponent var3 = var2.length >= 2 ? a(var1, var2, 1) : null;
+         Matcher var4 = a.matcher(var2[0]);
+         if (var4.matches()) {
+            this.a(var1, var2[0], var3 == null ? null : var3.c());
+         } else {
+            EntityPlayer var5 = MinecraftServer.getServer().getPlayerList().getPlayer(var2[0]);
+            if (var5 == null) {
+               throw new ExceptionPlayerNotFound("commands.banip.invalid");
+            }
+
+            this.a(var1, var5.w(), var3 == null ? null : var3.c());
+         }
+      } else {
+         throw new ExceptionUsage("commands.banip.usage");
+      }
+   }
+
+   @Override
+   public List<String> tabComplete(ICommandListener var1, String[] var2, BlockPosition var3) {
+      return var2.length == 1 ? a(var2, MinecraftServer.getServer().getPlayers()) : null;
+   }
+
+   protected void a(ICommandListener var1, String var2, String var3) {
+      IpBanEntry var4 = new IpBanEntry(var2, null, var1.getName(), null, var3);
+      MinecraftServer.getServer().getPlayerList().getIPBans().add(var4);
+      List<EntityPlayer> var5 = MinecraftServer.getServer().getPlayerList().b(var2);
+      String[] var6 = new String[var5.size()];
+      int var7 = 0;
+
+      for (EntityPlayer var9 : var5) {
+         var9.playerConnection.disconnect("You have been IP banned.");
+         var6[var7++] = var9.getName();
+      }
+
+      if (var5.isEmpty()) {
+         a(var1, this, "commands.banip.success", new Object[]{var2});
+      } else {
+         a(var1, this, "commands.banip.success.players", new Object[]{var2, a(var6)});
+      }
+   }
+}

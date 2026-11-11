@@ -1,0 +1,16 @@
+package lol.deyo.blaze.pathsearch;
+
+public enum PositionPathSearchType {
+   ANOTHER,
+   AVOIDTARGET,
+   FLEESUN,
+   GOTOTARGET,
+   MOVEINDOORS,
+   MOVETHROUGHVILLAGE,
+   MOVETOWARDSRESTRICTION,
+   MOVETOWARDSTARGET,
+   PANIC,
+   PLAY,
+   RANDOMSTROLL,
+   TAME;
+}

@@ -1,0 +1,105 @@
+package net.minecraft.server.v1_8_R3;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import java.util.Comparator;
+import java.util.List;
+import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
+
+public class PathfinderGoalNearestAttackableTarget<T extends EntityLiving> extends PathfinderGoalTarget {
+   protected final Class<T> a;
+   private final int g;
+   protected final PathfinderGoalNearestAttackableTarget.DistanceComparator b;
+   protected Predicate c;
+   protected EntityLiving d;
+
+   public PathfinderGoalNearestAttackableTarget(EntityCreature entitycreature, Class<T> oclass, boolean flag) {
+      this(entitycreature, oclass, flag, false);
+   }
+
+   public PathfinderGoalNearestAttackableTarget(EntityCreature entitycreature, Class<T> oclass, boolean flag, boolean flag1) {
+      this(entitycreature, oclass, 10, flag, flag1, null);
+   }
+
+   public PathfinderGoalNearestAttackableTarget(
+      EntityCreature entitycreature, Class<T> oclass, int i, boolean flag, boolean flag1, final Predicate<? super T> predicate
+   ) {
+      super(entitycreature, flag, flag1);
+      this.a = oclass;
+      this.g = i;
+      this.b = new PathfinderGoalNearestAttackableTarget.DistanceComparator(entitycreature);
+      this.a(1);
+      this.c = new Predicate() {
+         public boolean a(T t0) {
+            if (predicate != null && !predicate.apply(t0)) {
+               return false;
+            } else {
+               if (t0 instanceof EntityHuman) {
+                  double d0 = PathfinderGoalNearestAttackableTarget.this.f();
+                  if (t0.isSneaking()) {
+                     d0 *= 0.8F;
+                  }
+
+                  if (t0.isInvisible()) {
+                     float f = ((EntityHuman)t0).bY();
+                     if (f < 0.1F) {
+                        f = 0.1F;
+                     }
+
+                     d0 *= 0.7F * f;
+                  }
+
+                  if (t0.g(PathfinderGoalNearestAttackableTarget.this.e) > d0) {
+                     return false;
+                  }
+               }
+
+               return PathfinderGoalNearestAttackableTarget.this.a(t0, false);
+            }
+         }
+
+         public boolean apply(Object object) {
+            return this.a((T)object);
+         }
+      };
+   }
+
+   @Override
+   public boolean a() {
+      if (this.g > 0 && this.e.bc().nextInt(this.g) != 0) {
+         return false;
+      } else {
+         double d0 = this.f();
+         List<EntityLiving> list = this.e.world.a(this.a, this.e.getBoundingBox().grow(d0, 4.0, d0), Predicates.and(this.c, IEntitySelector.d));
+         list.sort(this.b);
+         if (list.isEmpty()) {
+            return false;
+         } else {
+            this.d = list.get(0);
+            return true;
+         }
+      }
+   }
+
+   @Override
+   public void c() {
+      this.e.setGoalTarget(this.d, this.d instanceof EntityPlayer ? TargetReason.CLOSEST_PLAYER : TargetReason.CLOSEST_ENTITY, true);
+      super.c();
+   }
+
+   public static class DistanceComparator implements Comparator<Entity> {
+      private final Entity a;
+
+      public DistanceComparator(Entity entity) {
+         this.a = entity;
+      }
+
+      public int a(Entity entity, Entity entity1) {
+         return Double.compare(this.a.h(entity), this.a.h(entity1));
+      }
+
+      public int compare(Entity object, Entity object1) {
+         return this.a(object, object1);
+      }
+   }
+}
