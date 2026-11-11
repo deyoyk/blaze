@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.server.ServerTickEndEvent;
 import com.destroystokyo.paper.event.server.ServerTickStartEvent;
 import com.eatthepath.uuid.FastUUID;
 import com.google.common.collect.Lists;
+import com.grinderwolf.swm.clsm.ClassModifier;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -214,6 +215,7 @@ public abstract class MinecraftServer implements ICommandListener, IAsyncTaskHan
 
    protected void a(String s, String s1, long i, WorldType worldtype, String s2) {
       this.a(s);
+      Object[] slimeWorlds = ClassModifier.getDefaultWorlds();
       this.worldServer = new WorldServer[3];
       int worldCount = 3;
 
@@ -240,8 +242,15 @@ public abstract class MinecraftServer implements ICommandListener, IAsyncTaskHan
          ChunkGenerator gen = this.server.getGenerator(name);
          WorldSettings worldsettings = new WorldSettings(i, this.getGamemode(), this.getGenerateStructures(), this.isHardcore(), worldtype);
          worldsettings.setGeneratorSettings(s2);
+         WorldServer slimeWorld = slimeWorlds == null ? null : (WorldServer)slimeWorlds[j];
          WorldServer world;
-         if (j == 0) {
+         if (slimeWorld != null) {
+            world = slimeWorld;
+            if (j == 0) {
+               SpigotConfig.disableStatSaving = true;
+               this.server.scoreboardManager = new CraftScoreboardManager(this, world.getScoreboard());
+            }
+         } else if (j == 0) {
             IDataManager idatamanager = new ServerNBTManager(this.server.getWorldContainer(), s1, true);
             WorldData worlddata = idatamanager.getWorldData();
             if (worlddata == null) {
@@ -308,7 +317,10 @@ public abstract class MinecraftServer implements ICommandListener, IAsyncTaskHan
          }
 
          this.server.getPluginManager().callEvent(new WorldInitEvent(world.getWorld()));
-         world.addIWorldAccess(new WorldManager(this, world));
+         if (slimeWorld == null) {
+            world.addIWorldAccess(new WorldManager(this, world));
+         }
+
          world.getWorldData().setGameType(this.getGamemode());
          this.worlds.add(world);
          this.getPlayerList().setPlayerFileData(this.worlds.toArray(new WorldServer[0]));

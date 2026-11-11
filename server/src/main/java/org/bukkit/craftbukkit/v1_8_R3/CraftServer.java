@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -371,23 +372,45 @@ public final class CraftServer implements org.bukkit.Server {
    public void loadPlugins() {
       this.pluginManager.registerInterface(JavaPluginLoader.class);
       File pluginFolder = (File)this.console.options.valueOf("plugins");
-      if (pluginFolder.exists()) {
-         Plugin[] plugins = this.pluginManager.loadPlugins(pluginFolder);
+      if (!pluginFolder.exists()) {
+         pluginFolder.mkdir();
+      }
 
-         for (Plugin plugin : plugins) {
-            JavaUtils.checkMalware(plugin);
+      this.installBundledSpark(pluginFolder);
+      Plugin[] plugins = this.pluginManager.loadPlugins(pluginFolder);
 
-            try {
-               String message = String.format("Loading %s", plugin.getDescription().getFullName());
-               plugin.getLogger().info(message);
-               plugin.onLoad();
-            } catch (Throwable var8) {
-               Logger.getLogger(CraftServer.class.getName())
-                  .log(Level.SEVERE, var8.getMessage() + " initializing " + plugin.getDescription().getFullName() + " (Is it up to date?)", var8);
+      for (Plugin plugin : plugins) {
+         JavaUtils.checkMalware(plugin);
+
+         try {
+            String message = String.format("Loading %s", plugin.getDescription().getFullName());
+            plugin.getLogger().info(message);
+            plugin.onLoad();
+         } catch (Throwable var8) {
+            Logger.getLogger(CraftServer.class.getName())
+               .log(Level.SEVERE, var8.getMessage() + " initializing " + plugin.getDescription().getFullName() + " (Is it up to date?)", var8);
+         }
+      }
+   }
+
+   private void installBundledSpark(File pluginFolder) {
+      File[] existing = pluginFolder.listFiles();
+      if (existing != null) {
+         for (File file : existing) {
+            String name = file.getName().toLowerCase();
+            if (file.isFile() && name.endsWith(".jar") && name.contains("spark")) {
+               return;
             }
          }
-      } else {
-         pluginFolder.mkdir();
+      }
+
+      File target = new File(pluginFolder, "Spark.jar");
+      try (InputStream input = CraftServer.class.getResourceAsStream("/builtin/spark.jar")) {
+         if (input != null) {
+            java.nio.file.Files.copy(input, target.toPath());
+         }
+      } catch (IOException ex) {
+         this.logger.log(Level.WARNING, "Could not install bundled Spark profiler", ex);
       }
    }
 
@@ -1162,6 +1185,10 @@ public final class CraftServer implements org.bukkit.Server {
    }
 
    public void addWorld(org.bukkit.World world) {
+      if (com.grinderwolf.swm.clsm.ClassModifier.skipWorldAdd(((org.bukkit.craftbukkit.v1_8_R3.CraftWorld)world).getHandle())) {
+         return;
+      }
+
       if (this.getWorld(world.getUID()) != null) {
          System.out
             .println(
