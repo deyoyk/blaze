@@ -113,6 +113,7 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
 
                for (int secxxx = 0; secxxx < scnt; secxxx++) {
                   ChunkSection cs = null;
+                  char[] blockIds = null;
 
                   for (int cy = 0; cy < 16; cy++) {
                      int cyoff = cy | secxxx << 4;
@@ -125,16 +126,18 @@ public class CustomChunkGenerator extends InternalChunkGenerator {
                            if (blk != 0) {
                               if (cs == null) {
                                  cs = csect[secxxx] = new ChunkSection(secxxx << 4, true);
+                                 blockIds = new char[4096];
                               }
 
                               Block b = Block.getById(blk & 255);
-                              cs.setType(cx, cy, cz, b.getBlockData());
+                              blockIds[cy << 8 | cz << 4 | cx] = (char)Block.d.b(b.getBlockData());
                            }
                         }
                      }
                   }
 
                   if (cs != null) {
+                     cs.a(blockIds);
                      cs.recalcBlockCounts();
                   }
                }
