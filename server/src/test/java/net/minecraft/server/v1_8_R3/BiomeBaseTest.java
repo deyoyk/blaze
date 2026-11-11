@@ -1,5 +1,6 @@
 package net.minecraft.server.v1_8_R3;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -22,10 +23,10 @@ public class BiomeBaseTest {
 
    @Test
    public void invalidBiomeIdsFallBackWithoutSpamming() {
-      assertSame(BiomeBase.OCEAN, BiomeBase.getBiome(-1));
+      assertNull(BiomeBase.getBiome(-1));
       assertSame(BiomeBase.PLAINS, BiomeBase.getBiome(-2, BiomeBase.PLAINS));
-      assertSame(BiomeBase.OCEAN, BiomeBase.getBiome(BiomeBase.getBiomes().length));
-      assertSame(BiomeBase.OCEAN, BiomeBase.getBiome(999));
+      assertSame(BiomeBase.OCEAN, BiomeBase.getBiome(BiomeBase.getBiomes().length, BiomeBase.OCEAN));
+      assertNull(BiomeBase.getBiome(999));
       assertSame(BiomeBase.PLAINS, BiomeBase.getBiome(BiomeBase.PLAINS.id));
    }
 }

@@ -384,12 +384,10 @@ public abstract class BiomeBase {
    public static BiomeBase getBiome(int i, BiomeBase biomebase) {
       if (i >= 0 && i < biomes.length) {
          BiomeBase biomebase1 = biomes[i];
-         if (biomebase1 != null) {
-            return biomebase1;
-         }
+         return biomebase1 == null ? biomebase : biomebase1;
       }
 
-      return biomebase == null ? OCEAN : biomebase;
+      return biomebase;
    }
 
    public static class BiomeMeta extends WeightedRandom.WeightedRandomChoice {
