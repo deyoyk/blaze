@@ -1182,7 +1182,9 @@ public class Chunk {
       if (this.e.length != abyte.length) {
          c.warn("Could not set level chunk biomes, array length is {} instead of {}", new Object[]{abyte.length, this.e.length});
       } else {
-         System.arraycopy(abyte, 0, this.e, 0, this.e.length);
+         for (int i = 0; i < this.e.length; i++) {
+            this.e[i] = abyte[i] < 0 ? 0 : abyte[i];
+         }
       }
    }
 

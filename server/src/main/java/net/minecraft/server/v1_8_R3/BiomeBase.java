@@ -9,11 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public abstract class BiomeBase {
-   private static final Logger aD = LogManager.getLogger();
    protected static final BiomeBase.BiomeTemperature a = new BiomeBase.BiomeTemperature(0.1F, 0.2F);
    protected static final BiomeBase.BiomeTemperature b = new BiomeBase.BiomeTemperature(-0.5F, 0.0F);
    protected static final BiomeBase.BiomeTemperature c = new BiomeBase.BiomeTemperature(-1.0F, 0.1F);
@@ -385,13 +382,14 @@ public abstract class BiomeBase {
    }
 
    public static BiomeBase getBiome(int i, BiomeBase biomebase) {
-      if (i >= 0 && i <= biomes.length) {
+      if (i >= 0 && i < biomes.length) {
          BiomeBase biomebase1 = biomes[i];
-         return biomebase1 == null ? biomebase : biomebase1;
-      } else {
-         aD.warn("Biome ID is out of bounds: " + i + ", defaulting to 0 (Ocean)");
-         return OCEAN;
+         if (biomebase1 != null) {
+            return biomebase1;
+         }
       }
+
+      return biomebase == null ? OCEAN : biomebase;
    }
 
    public static class BiomeMeta extends WeightedRandom.WeightedRandomChoice {

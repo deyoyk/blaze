@@ -51,6 +51,21 @@ public class ChunkEntitySliceTest {
       assertSame(Collections.emptyList(), chunk.entitySlices[0]);
    }
 
+   @Test
+   public void normalizesNegativeBiomeIds() {
+      WorldServer world = mock(WorldServer.class);
+      when(world.getSeed()).thenReturn(0L);
+      Chunk chunk = new Chunk(world, 0, 0);
+      byte[] biomes = new byte[256];
+      biomes[0] = (byte)-5;
+      biomes[1] = (byte)BiomeBase.PLAINS.id;
+      chunk.a(biomes);
+
+      assertEquals(0, chunk.getBiomeIndex()[0]);
+      assertSame(BiomeBase.OCEAN, chunk.getBiome(0, 0, null));
+      assertSame(BiomeBase.PLAINS, chunk.getBiome(1, 0, null));
+   }
+
    private static final class TestEntity extends Entity {
       private TestEntity() {
          super(null);
