@@ -296,11 +296,10 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
          byte[] abyte = nbttagcompound1.getByteArray("Blocks");
          NibbleArray nibblearray = new NibbleArray(nbttagcompound1.getByteArray("Data"));
          NibbleArray nibblearray1 = nbttagcompound1.hasKeyOfType("Add", 7) ? new NibbleArray(nbttagcompound1.getByteArray("Add")) : null;
-         char[] achar = new char[abyte.length];
          int nonEmptyBlockCount = 0;
          int tickingBlockCount = 0;
 
-         for (int l = 0; l < achar.length; l++) {
+         for (int l = 0; l < 4096; l++) {
             int i1 = l & 15;
             int j1 = l >> 8 & 15;
             int k1 = l >> 4 & 15;
@@ -334,10 +333,9 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
                }
             }
 
-            achar[l] = (char)packed;
+            chunksection.setBlockId(l, (char)packed);
          }
 
-         chunksection.a(achar);
          chunksection.setBlockCounts(nonEmptyBlockCount, tickingBlockCount);
          chunksection.a(new NibbleArray(nbttagcompound1.getByteArray("BlockLight")));
          if (flag) {

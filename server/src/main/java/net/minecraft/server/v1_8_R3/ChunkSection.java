@@ -50,6 +50,10 @@ public class ChunkSection {
       return this.blockStorage.get(id);
    }
 
+   public void setBlockId(int id, char value) {
+      this.blockStorage.set(id, value);
+   }
+
    public IBlockData getType(int x, int y, int z) {
       IBlockData iblockdata = Block.d.a(this.blockStorage.get(y << 8 | z << 4 | x));
       return iblockdata != null ? iblockdata : Blocks.AIR.getBlockData();

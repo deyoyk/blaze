@@ -16,6 +16,8 @@ public class ChunkSectionTest {
       values[stoneIndex] = 123;
       section.a(values);
       assertEquals(123, section.getBlockId(stoneIndex));
+      section.setBlockId(1, (char)42);
+      assertEquals(42, section.getBlockId(1));
 
       ChunkSectionSnapshot snapshot = section.createSnapshot();
       section.a(new char[4096]);
