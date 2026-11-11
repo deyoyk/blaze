@@ -5,7 +5,6 @@ import com.google.common.collect.Maps;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -17,34 +16,31 @@ public class ImmutableArrayMap<K, V> extends AbstractMap<K, V> implements Map<K,
    private final int offset;
    private final Object[] data;
    private final Object[] outlyingData;
-   private final Entry<K, V>[] entries;
+   private final Object[] keys;
    private final int[] outlyingIds;
    private final int size;
-   private final Comparator<K> keyComparator;
 
    public ImmutableArrayMap(Indexer<K> getId, Map<K, V> map) {
       Preconditions.checkNotNull(getId, "Null getId function");
       Preconditions.checkNotNull(map, "Null map");
       this.indexer = getId;
       this.size = map.size();
-      this.keyComparator = new Comparator<K>() {
-         @Override
-         public int compare(K o1, K o2) {
-            return Integer.compare(ImmutableArrayMap.this.indexer.getId(o1), ImmutableArrayMap.this.indexer.getId(o2));
-         }
-      };
-      Entry<K, V>[] entries = new Entry[this.size];
-      Iterator<Entry<K, V>> iterator = map.entrySet().iterator();
+      Object[] keys = new Object[this.size];
+      Iterator<K> iterator = map.keySet().iterator();
 
-      for (int i = 0; i < entries.length; i++) {
+      for (int i = 0; i < keys.length; i++) {
          Preconditions.checkArgument(iterator.hasNext(), "Expected %s entries but only got %s", new Object[]{this.size, i + 1});
-         Entry<K, V> entry = iterator.next();
-         entries[i] = Maps.immutableEntry(entry.getKey(), entry.getValue());
+         keys[i] = iterator.next();
       }
 
-      Arrays.sort(entries, (entry1, entry2) -> this.keyComparator.compare(entry1.getKey(), entry2.getKey()));
+      Arrays.sort(keys, (key1, key2) -> Integer.compare(this.indexer.getId((K)key1), this.indexer.getId((K)key2)));
       Preconditions.checkArgument(!iterator.hasNext(), "Got more than expected %s entries", new Object[]{this.size});
-      int[] ids = Arrays.stream(entries).map(Entry::getKey).mapToInt(this.indexer::getId).toArray();
+      int[] ids = new int[keys.length];
+
+      for (int i = 0; i < keys.length; i++) {
+         ids[i] = this.indexer.getId((K)keys[i]);
+      }
+
       int[] largestRangeOfSequentialValues = calculateLargestRangeOfSequentialValues(ids);
       int minIndex = largestRangeOfSequentialValues == null ? -1 : largestRangeOfSequentialValues[0];
       int maxIndex = largestRangeOfSequentialValues == null ? -1 : largestRangeOfSequentialValues[1];
@@ -53,14 +49,13 @@ public class ImmutableArrayMap<K, V> extends AbstractMap<K, V> implements Map<K,
       this.outlyingIds = new int[this.size - sequentalRangeSize];
       this.outlyingData = new Object[this.size - sequentalRangeSize];
       this.offset = sequentalRangeSize == 0 ? 0 : ids[minIndex];
-      this.entries = entries;
+      this.keys = keys;
       int outlyingIndex = 0;
 
-      for (int i = 0; i < entries.length; i++) {
-         Entry<K, V> entry = entries[i];
-         K key = entry.getKey();
-         V value = entry.getValue();
-         int id = this.indexer.getId(key);
+      for (int i = 0; i < keys.length; i++) {
+         K key = (K)keys[i];
+         V value = map.get(key);
+         int id = ids[i];
          Preconditions.checkArgument(id >= 0, "Negative id for %s: %s", new Object[]{key, id});
          if (i >= minIndex && i < maxIndex) {
             int index = id - this.offset;
@@ -100,7 +95,57 @@ public class ImmutableArrayMap<K, V> extends AbstractMap<K, V> implements Map<K,
       return new AbstractSet<Entry<K, V>>() {
          @Override
          public Iterator<Entry<K, V>> iterator() {
-            return Arrays.asList(ImmutableArrayMap.this.entries).iterator();
+            return new Iterator<Entry<K, V>>() {
+               private int index;
+
+               @Override
+               public boolean hasNext() {
+                  return this.index < ImmutableArrayMap.this.keys.length;
+               }
+
+               @Override
+               public Entry<K, V> next() {
+                  K key = (K)ImmutableArrayMap.this.keys[this.index++];
+                  return Maps.immutableEntry(key, ImmutableArrayMap.this.get(key));
+               }
+
+               @Override
+               public void remove() {
+                  throw new UnsupportedOperationException();
+               }
+            };
+         }
+
+         @Override
+         public int size() {
+            return ImmutableArrayMap.this.size;
+         }
+      };
+   }
+
+   @Override
+   public Set<K> keySet() {
+      return new AbstractSet<K>() {
+         @Override
+         public Iterator<K> iterator() {
+            return new Iterator<K>() {
+               private int index;
+
+               @Override
+               public boolean hasNext() {
+                  return this.index < ImmutableArrayMap.this.keys.length;
+               }
+
+               @Override
+               public K next() {
+                  return (K)ImmutableArrayMap.this.keys[this.index++];
+               }
+
+               @Override
+               public void remove() {
+                  throw new UnsupportedOperationException();
+               }
+            };
          }
 
          @Override
@@ -112,8 +157,8 @@ public class ImmutableArrayMap<K, V> extends AbstractMap<K, V> implements Map<K,
 
    @Override
    public void forEach(BiConsumer<? super K, ? super V> action) {
-      for (Entry<K, V> entry : this.entries) {
-         action.accept(entry.getKey(), entry.getValue());
+      for (Object key : this.keys) {
+         action.accept((K)key, this.get((K)key));
       }
    }
 

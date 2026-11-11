@@ -114,7 +114,7 @@ public class DataWatcher {
    public List<DataWatcher.WatchableObject> b() {
       ArrayList<DataWatcher.WatchableObject> arraylist = null;
       if (this.e) {
-         for (DataWatcher.WatchableObject datawatcher_watchableobject : this.dataValues.values()) {
+         for (DataWatcher.WatchableObject datawatcher_watchableobject : this.dataValues) {
             if (datawatcher_watchableobject.d()) {
                datawatcher_watchableobject.a(false);
                if (arraylist == null) {
@@ -137,7 +137,7 @@ public class DataWatcher {
    }
 
    public void a(PacketDataSerializer packetdataserializer) throws IOException {
-      for (DataWatcher.WatchableObject watchableObject : this.dataValues.values()) {
+      for (DataWatcher.WatchableObject watchableObject : this.dataValues) {
          a(packetdataserializer, watchableObject);
       }
 
@@ -145,8 +145,10 @@ public class DataWatcher {
    }
 
    public List<DataWatcher.WatchableObject> c() {
-      ArrayList<DataWatcher.WatchableObject> arraylist = Lists.newArrayList();
-      arraylist.addAll(this.dataValues.values());
+      ArrayList<DataWatcher.WatchableObject> arraylist = Lists.newArrayListWithCapacity(this.dataValues.size());
+      for (DataWatcher.WatchableObject watchableObject : this.dataValues) {
+         arraylist.add(watchableObject);
+      }
 
       for (int i = 0; i < arraylist.size(); i++) {
          DataWatcher.WatchableObject watchableobject = arraylist.get(i);

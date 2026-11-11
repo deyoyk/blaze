@@ -20,12 +20,13 @@ import javax.annotation.Nullable;
 
 public class ImmutableArrayTable<R, C, V> implements Table<R, C, V> {
    private final ImmutableArrayMap<R, Map<C, V>> rowMap;
-   private final ImmutableMap<C, Map<R, V>> columnMap;
+   private volatile ImmutableMap<C, Map<R, V>> columnMap;
    private final int size;
 
    public ImmutableArrayTable(Indexer<R> rowIndexer, ToIntBiFunction<R, C> columnGetId, Table<R, C, V> table) {
       Preconditions.checkNotNull(table, "Null table");
       Builder<R, Map<C, V>> rowMapBuilder = ImmutableMap.builder();
+      int size = 0;
 
       for (Entry<R, Map<C, V>> rowEntry : table.rowMap().entrySet()) {
          R row = rowEntry.getKey();
@@ -37,24 +38,35 @@ public class ImmutableArrayTable<R, C, V> implements Table<R, C, V> {
          }
 
          rowMapBuilder.put(row, new ImmutableArrayMap<>(c -> columnGetId.applyAsInt(row, (C)c), rowMapEntryBuilder.build()));
+         size += rowEntry.getValue().size();
       }
 
       this.rowMap = new ImmutableArrayMap<>(rowIndexer, rowMapBuilder.build());
-      Map<C, Map<R, V>> columnMapBuilder = new HashMap<>();
-      int size = 0;
+      this.size = size;
+   }
 
-      for (Cell<R, C, V> cell : this.cellSet()) {
-         C column = (C)cell.getColumnKey();
-         V value = (V)cell.getValue();
-         Preconditions.checkNotNull(column, "Null column");
-         Preconditions.checkNotNull(value, "Null value");
-         Map<R, V> columnEntry = columnMapBuilder.computeIfAbsent(column, c -> new HashMap<>());
-         columnEntry.put((R)cell.getRowKey(), (V)cell.getValue());
-         size++;
+   private ImmutableMap<C, Map<R, V>> getColumnMap() {
+      ImmutableMap<C, Map<R, V>> map = this.columnMap;
+      if (map == null) {
+         synchronized (this) {
+            map = this.columnMap;
+            if (map == null) {
+               Map<C, Map<R, V>> builder = new HashMap<>();
+
+               for (Entry<R, Map<C, V>> rowEntry : this.rowMap.entrySet()) {
+                  R row = rowEntry.getKey();
+                  for (Entry<C, V> columnEntry : rowEntry.getValue().entrySet()) {
+                     builder.computeIfAbsent(columnEntry.getKey(), c -> new HashMap<>()).put(row, columnEntry.getValue());
+                  }
+               }
+
+               map = ImmutableMap.copyOf(builder);
+               this.columnMap = map;
+            }
+         }
       }
 
-      this.size = size;
-      this.columnMap = ImmutableMap.copyOf(columnMapBuilder);
+      return map;
    }
 
    public boolean contains(@Nullable Object rowKey, @Nullable Object columnKey) {
@@ -67,7 +79,7 @@ public class ImmutableArrayTable<R, C, V> implements Table<R, C, V> {
    }
 
    public boolean containsColumn(@Nullable Object columnKey) {
-      return this.columnMap.containsKey(columnKey);
+      return this.getColumnMap().containsKey(columnKey);
    }
 
    public boolean containsValue(@Nullable Object value) {
@@ -100,7 +112,7 @@ public class ImmutableArrayTable<R, C, V> implements Table<R, C, V> {
    }
 
    public Map<R, V> column(C columnKey) {
-      return (Map<R, V>)this.columnMap.get(columnKey);
+      return (Map<R, V>)this.getColumnMap().get(columnKey);
    }
 
    public Set<Cell<R, C, V>> cellSet() {
@@ -122,7 +134,7 @@ public class ImmutableArrayTable<R, C, V> implements Table<R, C, V> {
    }
 
    public Set<C> columnKeySet() {
-      return this.columnMap.keySet();
+      return this.getColumnMap().keySet();
    }
 
    public Collection<V> values() {
@@ -134,7 +146,7 @@ public class ImmutableArrayTable<R, C, V> implements Table<R, C, V> {
    }
 
    public Map<C, Map<R, V>> columnMap() {
-      return this.columnMap;
+      return this.getColumnMap();
    }
 
    public void clear() {

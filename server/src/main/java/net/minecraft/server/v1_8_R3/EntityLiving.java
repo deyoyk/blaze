@@ -9,14 +9,15 @@ import lol.deyo.blaze.knockback.Knockback;
 import lol.deyo.blaze.knockback.KnockbackType;
 import lol.deyo.blaze.knockback.types.SimpleKnockback;
 import lol.deyo.blaze.utils.Utils;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.TrigMath;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
@@ -41,7 +42,8 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 public abstract class EntityLiving extends Entity {
    private static final UUID a = FastUUID.parseUUID("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
    private static final AttributeModifier b = new AttributeModifier(a, "Sprinting speed boost", 0.3F, 2).a(false);
-   public final Map<Integer, MobEffect> effects = new ConcurrentHashMap<>();
+   private static final Map<Integer, MobEffect> EMPTY_EFFECTS = Collections.emptyMap();
+   public Map<Integer, MobEffect> effects = EMPTY_EFFECTS;
    private final ItemStack[] h = new ItemStack[5];
    public CombatTracker combatTracker = new CombatTracker(this);
    public boolean ar;
@@ -99,6 +101,14 @@ public abstract class EntityLiving extends Entity {
    private float bm;
    private int bn;
    private float bo;
+
+   private Map<Integer, MobEffect> effectsMutable() {
+      if (this.effects == EMPTY_EFFECTS) {
+         this.effects = new Int2ObjectOpenHashMap<>();
+      }
+
+      return this.effects;
+   }
 
    public EntityLiving(World world) {
       super(world);
@@ -376,7 +386,7 @@ public abstract class EntityLiving extends Entity {
             NBTTagCompound nbttagcompound1 = nbttaglist.get(i);
             MobEffect mobeffect = MobEffect.b(nbttagcompound1);
             if (mobeffect != null) {
-               this.effects.put(mobeffect.getEffectId(), mobeffect);
+               this.effectsMutable().put(mobeffect.getEffectId(), mobeffect);
             }
          }
       }
@@ -544,7 +554,7 @@ public abstract class EntityLiving extends Entity {
                return;
             }
 
-            this.effects.put(mobeffect.getEffectId(), mobeffect);
+            this.effectsMutable().put(mobeffect.getEffectId(), mobeffect);
             this.a(mobeffect);
          }
       }

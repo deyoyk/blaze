@@ -7,6 +7,7 @@ import lol.deyo.blaze.configs.BlazeConfig;
 import lol.deyo.blaze.optimizations.ObjectMapList;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +80,7 @@ public class Chunk {
       this.chunkPosition = new BlockPosition(this.locX << 4, 0, this.locZ << 4);
 
       for (int k = 0; k < this.entitySlices.length; k++) {
-         this.entitySlices[k] = new ObjectMapList();
+         this.entitySlices[k] = Collections.emptyList();
       }
 
       Arrays.fill(this.f, -999);
@@ -664,6 +665,16 @@ public class Chunk {
       return this.a(blockposition.getX(), blockposition.getY(), blockposition.getZ(), i);
    }
 
+   private List<Entity> getEntitySlice(int index) {
+      List<Entity> slice = this.entitySlices[index];
+      if (slice.isEmpty()) {
+         slice = new ObjectMapList<>();
+         this.entitySlices[index] = slice;
+      }
+
+      return slice;
+   }
+
    public void addCannonEntity(Entity entity) {
       this.r = true;
       int k = MathHelper.floor(entity.locY / 16.0);
@@ -679,7 +690,7 @@ public class Chunk {
       entity.ae = this.locX;
       entity.af = k;
       entity.ag = this.locZ;
-      this.entitySlices[k].add(entity);
+      this.getEntitySlice(k).add(entity);
    }
 
    public void a(Entity entity) {
@@ -706,7 +717,7 @@ public class Chunk {
       entity.ae = this.locX;
       entity.af = k;
       entity.ag = this.locZ;
-      this.entitySlices[k].add(entity);
+      this.getEntitySlice(k).add(entity);
       if (entity instanceof EntityItem) {
          this.itemCounts[k]++;
       } else if (entity instanceof IInventory) {
@@ -788,6 +799,10 @@ public class Chunk {
                this.entityCount.adjustValue(creatureType.a(), -1);
             }
          }
+
+         if (this.entitySlices[i].isEmpty()) {
+            this.entitySlices[i] = Collections.emptyList();
+         }
       }
    }
 
@@ -800,7 +815,9 @@ public class Chunk {
          i = this.entitySlices.length - 1;
       }
 
-      this.entitySlices[i].remove(entity);
+      if (this.entitySlices[i].remove(entity) && this.entitySlices[i].isEmpty()) {
+         this.entitySlices[i] = Collections.emptyList();
+      }
    }
 
    public boolean d(BlockPosition blockposition) {
