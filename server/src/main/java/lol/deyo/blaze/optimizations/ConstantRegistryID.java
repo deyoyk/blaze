@@ -6,7 +6,7 @@ import net.minecraft.server.v1_8_R3.RegistryID;
 
 public class ConstantRegistryID extends RegistryID<IBlockData> {
    private final Reference2IntOpenHashMap<IBlockData> identityMap = new Reference2IntOpenHashMap(7806);
-   private final IBlockData[] objectList = new IBlockData[3164];
+   private final IBlockData[] objectList = new IBlockData[4096];
 
    public void a(IBlockData key, int value) {
       this.identityMap.put(key, value);
@@ -18,7 +18,7 @@ public class ConstantRegistryID extends RegistryID<IBlockData> {
    }
 
    public IBlockData a(int value) {
-      return value >= 0 && value < 3164 ? this.objectList[value] : null;
+      return value >= 0 && value < this.objectList.length ? this.objectList[value] : null;
    }
 
    public IBlockData[] getAllStates() {

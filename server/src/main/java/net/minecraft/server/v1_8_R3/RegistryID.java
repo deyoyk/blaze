@@ -2,24 +2,22 @@ package net.minecraft.server.v1_8_R3;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class RegistryID<T> implements Registry<T> {
    private final IdentityHashMap<T, Integer> a = new IdentityHashMap<>(0);
-   private final List<T> b = Lists.newArrayList();
+   private Object[] b = new Object[16];
 
    public void a(T var1, int var2) {
       this.a.put(var1, var2);
-
-      while (this.b.size() <= var2) {
-         this.b.add(null);
+      if (var2 >= this.b.length) {
+         this.b = Arrays.copyOf(this.b, Math.max(this.b.length * 2, var2 + 1));
       }
 
-      this.b.set(var2, var1);
+      this.b[var2] = var1;
    }
 
    public int b(T var1) {
@@ -28,12 +26,12 @@ public class RegistryID<T> implements Registry<T> {
    }
 
    public T a(int var1) {
-      return var1 >= 0 && var1 < this.b.size() ? this.b.get(var1) : null;
+      return var1 >= 0 && var1 < this.b.length ? (T)this.b[var1] : null;
    }
 
    @NotNull
    @Override
    public Iterator<T> iterator() {
-      return Iterators.filter(this.b.iterator(), Predicates.notNull());
+      return Iterators.filter(Iterators.forArray((T[])this.b), Predicates.notNull());
    }
 }
