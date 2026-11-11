@@ -26,6 +26,7 @@ public class ChunkSectionStorageTest {
       storage.set(0, (char)5);
       assertFalse(storage.isUniform());
       assertFalse(storage.isDirect());
+      assertTrue(storage.isCompact());
       assertEquals(2, storage.paletteSize());
       assertEquals(5, storage.get(0));
       assertEquals(0, storage.get(1));
@@ -68,6 +69,7 @@ public class ChunkSectionStorageTest {
       storage.setValues(small);
       assertFalse(storage.isUniform());
       assertFalse(storage.isDirect());
+      assertTrue(storage.isCompact());
       assertEquals(1, storage.get(0));
       assertEquals(2, storage.get(1));
 
@@ -79,6 +81,25 @@ public class ChunkSectionStorageTest {
       storage.setValues(large);
       assertTrue(storage.isDirect());
       assertSame(large, storage.materialize());
+   }
+
+   @Test
+   public void expandsCompactIndicesWhenThePaletteGrows() {
+      ChunkSectionStorage storage = new ChunkSectionStorage();
+      for (int index = 0; index < 15; index++) {
+         storage.set(index, (char)(index + 1));
+      }
+
+      assertTrue(storage.isCompact());
+      storage.set(15, (char)16);
+      assertFalse(storage.isCompact());
+      assertFalse(storage.isDirect());
+      for (int index = 0; index < 15; index++) {
+         assertEquals(index + 1, storage.get(index));
+      }
+
+      assertEquals(16, storage.get(15));
+      assertEquals(0, storage.get(16));
    }
 
    @Test

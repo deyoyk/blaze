@@ -13,6 +13,7 @@ final class ChunkSectionStorage {
    private char[] palette;
    private int paletteSize;
    private byte[] indices;
+   private boolean compact;
    private char[] values;
 
    ChunkSectionStorage() {
@@ -26,7 +27,7 @@ final class ChunkSectionStorage {
       if (this.mode == UNIFORM) {
          return this.uniformValue;
       } else if (this.mode == PALETTE) {
-         return this.palette[this.indices[index] & 0xFF];
+         return this.palette[this.getIndex(index)];
       } else {
          return this.values[index];
       }
@@ -42,8 +43,9 @@ final class ChunkSectionStorage {
          this.palette[0] = this.uniformValue;
          this.palette[1] = value;
          this.paletteSize = 2;
-         this.indices = new byte[SIZE];
-         this.indices[index] = 1;
+         this.indices = new byte[SIZE / 2];
+         this.compact = true;
+         this.setIndex(index, 1);
          this.mode = PALETTE;
          return;
       }
@@ -51,7 +53,7 @@ final class ChunkSectionStorage {
       if (this.mode == PALETTE) {
          int paletteIndex = this.find(value);
          if (paletteIndex >= 0) {
-            this.indices[index] = (byte)paletteIndex;
+            this.setIndex(index, paletteIndex);
             return;
          }
 
@@ -60,12 +62,16 @@ final class ChunkSectionStorage {
             return;
          }
 
+         if (this.compact && this.paletteSize == 16) {
+            this.expandIndices();
+         }
+
          if (this.paletteSize == this.palette.length) {
             this.palette = Arrays.copyOf(this.palette, this.palette.length * 2);
          }
 
          this.palette[this.paletteSize] = value;
-         this.indices[index] = (byte)this.paletteSize;
+         this.setIndex(index, this.paletteSize);
          this.paletteSize++;
          return;
       }
@@ -79,7 +85,7 @@ final class ChunkSectionStorage {
          Arrays.fill(copy, this.uniformValue);
       } else if (this.mode == PALETTE) {
          for (int index = 0; index < SIZE; index++) {
-            copy[index] = this.palette[this.indices[index] & 0xFF];
+            copy[index] = this.palette[this.getIndex(index)];
          }
       } else {
          System.arraycopy(this.values, 0, copy, 0, SIZE);
@@ -96,6 +102,7 @@ final class ChunkSectionStorage {
       this.values = this.copy();
       this.palette = null;
       this.indices = null;
+      this.compact = false;
       this.mode = DIRECT;
       return this.values;
    }
@@ -107,7 +114,8 @@ final class ChunkSectionStorage {
 
       char[] newPalette = new char[16];
       int count = 0;
-      byte[] newIndices = new byte[SIZE];
+      boolean compact = true;
+      byte[] newIndices = new byte[SIZE / 2];
 
       for (int index = 0; index < SIZE; index++) {
          char value = source[index];
@@ -117,8 +125,19 @@ final class ChunkSectionStorage {
                this.values = source;
                this.palette = null;
                this.indices = null;
+               this.compact = false;
                this.mode = DIRECT;
                return;
+            }
+
+            if (compact && count == 16) {
+               byte[] expanded = new byte[SIZE];
+               for (int i = 0; i < SIZE; i++) {
+                  expanded[i] = (byte)getIndex(newIndices, true, i);
+               }
+
+               newIndices = expanded;
+               compact = false;
             }
 
             if (count == newPalette.length) {
@@ -129,20 +148,63 @@ final class ChunkSectionStorage {
             paletteIndex = count++;
          }
 
-         newIndices[index] = (byte)paletteIndex;
+         setIndex(newIndices, compact, index, paletteIndex);
       }
 
       if (count == 1) {
          this.uniformValue = newPalette[0];
          this.palette = null;
          this.indices = null;
+         this.compact = false;
          this.mode = UNIFORM;
       } else {
          this.palette = newPalette;
          this.paletteSize = count;
          this.indices = newIndices;
+         this.compact = compact;
          this.mode = PALETTE;
       }
+   }
+
+   private int getIndex(int index) {
+      if (this.compact) {
+         return this.indices[index >> 1] >> ((index & 1) << 2) & 15;
+      } else {
+         return this.indices[index] & 0xFF;
+      }
+   }
+
+   private void setIndex(int index, int value) {
+      setIndex(this.indices, this.compact, index, value);
+   }
+
+   private static int getIndex(byte[] indices, boolean compact, int index) {
+      if (compact) {
+         return indices[index >> 1] >> ((index & 1) << 2) & 15;
+      } else {
+         return indices[index] & 0xFF;
+      }
+   }
+
+   private static void setIndex(byte[] indices, boolean compact, int index, int value) {
+      if (compact) {
+         int slot = index >> 1;
+         int shift = (index & 1) << 2;
+         indices[slot] = (byte)(indices[slot] & ~(15 << shift) | (value & 15) << shift);
+      } else {
+         indices[index] = (byte)value;
+      }
+   }
+
+   private void expandIndices() {
+      byte[] expanded = new byte[SIZE];
+
+      for (int index = 0; index < SIZE; index++) {
+         expanded[index] = (byte)this.getIndex(index);
+      }
+
+      this.indices = expanded;
+      this.compact = false;
    }
 
    private int find(char value) {
@@ -164,6 +226,7 @@ final class ChunkSectionStorage {
       this.values[index] = value;
       this.palette = null;
       this.indices = null;
+      this.compact = false;
       this.mode = DIRECT;
    }
 
@@ -177,5 +240,9 @@ final class ChunkSectionStorage {
 
    boolean isDirect() {
       return this.mode == DIRECT;
+   }
+
+   boolean isCompact() {
+      return this.mode == PALETTE && this.compact;
    }
 }
