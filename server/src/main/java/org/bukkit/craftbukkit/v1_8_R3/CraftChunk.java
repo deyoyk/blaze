@@ -263,12 +263,12 @@ public class CraftChunk implements org.bukkit.Chunk {
             sectionEmpty[i] = true;
          } else {
             short[] blockids = new short[4096];
-            char[] baseids = cs[i].getIdArray();
             byte[] dataValues = sectionBlockData[i] = new byte[2048];
 
             for (int j = 0; j < 4096; j++) {
-               if (baseids[j] != 0) {
-                  IBlockData blockData = (IBlockData)net.minecraft.server.v1_8_R3.Block.d.a(baseids[j]);
+               char baseId = cs[i].getBlockId(j);
+               if (baseId != 0) {
+                  IBlockData blockData = (IBlockData)net.minecraft.server.v1_8_R3.Block.d.a(baseId);
                   if (blockData != null) {
                      blockids[j] = (short)net.minecraft.server.v1_8_R3.Block.getId(blockData.getBlock());
                      int data = blockData.getBlock().toLegacyData(blockData);

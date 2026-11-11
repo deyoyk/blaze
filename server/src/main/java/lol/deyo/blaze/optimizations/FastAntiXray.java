@@ -123,7 +123,7 @@ public class FastAntiXray {
             ChunkSection section = chunk.getSections()[sectionId];
             if (section != null) {
                int index = (y & 15) << 8 | (z & 15) << 4 | x & 15;
-               if (this.obfuscateBlocks[section.getIdArray()[index]]) {
+               if (this.obfuscateBlocks[section.getBlockId(index)]) {
                   world.notify(x, y, z);
                }
             }

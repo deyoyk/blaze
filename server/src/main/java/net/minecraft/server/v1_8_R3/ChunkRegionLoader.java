@@ -192,12 +192,12 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
          if (chunksection != null) {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
             nbttagcompound1.setByte("Y", (byte)(chunksection.getYPosition() >> 4 & 0xFF));
-            byte[] abyte = new byte[chunksection.getIdArray().length];
+            byte[] abyte = new byte[4096];
             NibbleArray nibblearray = new NibbleArray();
             NibbleArray nibblearray1 = null;
 
-            for (int k = 0; k < chunksection.getIdArray().length; k++) {
-               char c0 = chunksection.getIdArray()[k];
+            for (int k = 0; k < 4096; k++) {
+               char c0 = chunksection.getBlockId(k);
                int l = k & 15;
                int i1 = k >> 8 & 15;
                int j1 = k >> 4 & 15;

@@ -81,8 +81,8 @@ public class PacketPlayOutMapChunk implements Packet<PacketListenerPlayOut> {
          for (int var18 = 0; var18 < totalSections; var18++) {
             ChunkSection section = sendingSections[var18];
 
-            char[] var17;
-            for (char blockId : var17 = section.getIdArray()) {
+            for (int index = 0; index < 4096; index++) {
+               char blockId = section.getBlockId(index);
                map.a[blockWriteIndex++] = (byte)(blockId & 255);
                map.a[blockWriteIndex++] = (byte)(blockId >> '\b' & 0xFF);
             }
@@ -131,10 +131,9 @@ public class PacketPlayOutMapChunk implements Packet<PacketListenerPlayOut> {
 
       for (int var20 = 0; var20 < totalSections; var20++) {
          ChunkSection section = sendingSections[var20];
-         char[] idArray = section.getIdArray();
 
-         for (int k = 0; k < idArray.length; k++) {
-            char blockId = idArray[k];
+         for (int k = 0; k < 4096; k++) {
+            char blockId = section.getBlockId(k);
             if (antiXray.obfuscateBlocks[blockId]) {
                switch (world.spigotConfig.engineMode) {
                   case 1:

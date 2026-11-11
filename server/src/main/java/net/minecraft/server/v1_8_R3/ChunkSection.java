@@ -9,7 +9,7 @@ public class ChunkSection {
    private int yPos;
    private int nonEmptyBlockCount;
    private int tickingBlockCount;
-   private char[] blockIds;
+   private final ChunkSectionStorage blockStorage;
    private int[] blockDurabilities;
    private NibbleArray emittedLight;
    private NibbleArray skyLight;
@@ -17,7 +17,7 @@ public class ChunkSection {
 
    public ChunkSection(int i, boolean flag) {
       this.yPos = i;
-      this.blockIds = new char[4096];
+      this.blockStorage = new ChunkSectionStorage();
       if ((Boolean)BlazeConfig.explosionDestroyer.getValue()) {
          this.blockDurabilities = new int[4096];
       }
@@ -32,7 +32,7 @@ public class ChunkSection {
 
    public ChunkSection(int y, boolean flag, char[] blockIds) {
       this.yPos = y;
-      this.blockIds = blockIds;
+      this.blockStorage = new ChunkSectionStorage(blockIds);
       if ((Boolean)BlazeConfig.explosionDestroyer.getValue()) {
          this.blockDurabilities = new int[4096];
       }
@@ -47,16 +47,16 @@ public class ChunkSection {
    }
 
    public char getBlockId(int id) {
-      return this.blockIds[id];
+      return this.blockStorage.get(id);
    }
 
    public IBlockData getType(int x, int y, int z) {
-      IBlockData iblockdata = Block.d.a(this.blockIds[y << 8 | z << 4 | x]);
+      IBlockData iblockdata = Block.d.a(this.blockStorage.get(y << 8 | z << 4 | x));
       return iblockdata != null ? iblockdata : Blocks.AIR.getBlockData();
    }
 
    public IBlockData getType(int id) {
-      IBlockData iblockdata = Block.d.a(this.blockIds[id]);
+      IBlockData iblockdata = Block.d.a(this.blockStorage.get(id));
       return iblockdata != null ? iblockdata : Blocks.AIR.getBlockData();
    }
 
@@ -89,7 +89,7 @@ public class ChunkSection {
          }
       }
 
-      this.blockIds[id] = (char)Block.d.b(iblockdata);
+      this.blockStorage.set(id, (char)Block.d.b(iblockdata));
       this.isDirty = true;
    }
 
@@ -183,11 +183,11 @@ public class ChunkSection {
    }
 
    public char[] getIdArray() {
-      return this.blockIds;
+      return this.blockStorage.materialize();
    }
 
    public void a(char[] achar) {
-      this.blockIds = achar;
+      this.blockStorage.setValues(achar);
    }
 
    public NibbleArray getEmittedLightArray() {
@@ -206,10 +206,6 @@ public class ChunkSection {
       this.skyLight = nibblearray;
    }
 
-   private char[] clone(char[] chars) {
-      return chars != null ? (char[])chars.clone() : null;
-   }
-
    private NibbleArray clone(NibbleArray array) {
       return array != null ? array.clone() : null;
    }
@@ -219,7 +215,7 @@ public class ChunkSection {
          this.yPos,
          this.nonEmptyBlockCount,
          this.tickingBlockCount,
-         this.clone(this.blockIds),
+         this.blockStorage.copy(),
          this.clone(this.emittedLight),
          this.clone(this.skyLight),
          this.isDirty
@@ -230,7 +226,7 @@ public class ChunkSection {
       this.yPos = snap.getYPos();
       this.nonEmptyBlockCount = snap.getNonEmptyBlockCount();
       this.tickingBlockCount = snap.getTickingBlockCount();
-      this.blockIds = this.clone(snap.getBlockIds());
+      this.blockStorage.setValues((char[])snap.getBlockIds().clone());
       this.emittedLight = this.clone(snap.getEmittedLight());
       this.skyLight = this.clone(snap.getSkyLight());
       this.isDirty = snap.isDirty();
