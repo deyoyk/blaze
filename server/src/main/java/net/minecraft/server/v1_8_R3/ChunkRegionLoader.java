@@ -297,6 +297,8 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
          NibbleArray nibblearray = new NibbleArray(nbttagcompound1.getByteArray("Data"));
          NibbleArray nibblearray1 = nbttagcompound1.hasKeyOfType("Add", 7) ? new NibbleArray(nbttagcompound1.getByteArray("Add")) : null;
          char[] achar = new char[abyte.length];
+         int nonEmptyBlockCount = 0;
+         int tickingBlockCount = 0;
 
          for (int l = 0; l < achar.length; l++) {
             int i1 = l & 15;
@@ -306,16 +308,29 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
             int id = abyte[l] & 255;
             int data = nibblearray.a(i1, j1, k1);
             int packed = ex << 12 | id << 4 | data;
-            if (Block.d.a(packed) == null) {
+            IBlockData blockData = Block.d.a(packed);
+            if (blockData == null) {
                Block block = Block.getById(ex << 8 | id);
                if (block != null) {
                   try {
                      data = block.toLegacyData(block.fromLegacyData(data));
-                  } catch (Exception var28) {
+                  } catch (Exception var29) {
                      data = block.toLegacyData(block.getBlockData());
                   }
 
                   packed = ex << 12 | id << 4 | data;
+                  blockData = Block.d.a(packed);
+               }
+            }
+
+            if (blockData != null) {
+               Block block = blockData.getBlock();
+               if (block != Blocks.AIR) {
+                  nonEmptyBlockCount++;
+                  if (block.isTicking()) {
+                     tickingBlockCount++;
+                     chunksection.getTickList().add((short)l);
+                  }
                }
             }
 
@@ -323,12 +338,12 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
          }
 
          chunksection.a(achar);
+         chunksection.setBlockCounts(nonEmptyBlockCount, tickingBlockCount);
          chunksection.a(new NibbleArray(nbttagcompound1.getByteArray("BlockLight")));
          if (flag) {
             chunksection.b(new NibbleArray(nbttagcompound1.getByteArray("SkyLight")));
          }
 
-         chunksection.recalcBlockCounts();
          achunksection[b1] = chunksection;
       }
 

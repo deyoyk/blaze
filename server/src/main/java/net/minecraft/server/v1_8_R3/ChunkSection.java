@@ -156,6 +156,11 @@ public class ChunkSection {
       return this.emittedLight.a(i, j, k);
    }
 
+   public void setBlockCounts(int nonEmptyBlockCount, int tickingBlockCount) {
+      this.nonEmptyBlockCount = nonEmptyBlockCount;
+      this.tickingBlockCount = tickingBlockCount;
+   }
+
    public void recalcBlockCounts() {
       this.nonEmptyBlockCount = 0;
       this.tickingBlockCount = 0;
