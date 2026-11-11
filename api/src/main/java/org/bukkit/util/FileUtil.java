@@ -1,0 +1,48 @@
+package org.bukkit.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+
+public class FileUtil {
+   public static boolean copy(File inFile, File outFile) {
+      if (!inFile.exists()) {
+         return false;
+      } else {
+         FileChannel in = null;
+         FileChannel out = null;
+
+         boolean var5;
+         try {
+            in = new FileInputStream(inFile).getChannel();
+            out = new FileOutputStream(outFile).getChannel();
+            long pos = 0L;
+            long size = in.size();
+
+            while (pos < size) {
+               pos += in.transferTo(pos, 10485760L, out);
+            }
+
+            return true;
+         } catch (IOException var16) {
+            var5 = false;
+         } finally {
+            try {
+               if (in != null) {
+                  in.close();
+               }
+
+               if (out != null) {
+                  out.close();
+               }
+            } catch (IOException var15) {
+               return false;
+            }
+         }
+
+         return var5;
+      }
+   }
+}
