@@ -287,11 +287,11 @@ public class CraftChunk implements org.bukkit.Chunk {
                sectionSkyLights[i] = emptyData;
             } else {
                sectionSkyLights[i] = new byte[2048];
-               System.arraycopy(cs[i].getSkyLightArray().a(), 0, sectionSkyLights[i], 0, 2048);
+               System.arraycopy(cs[i].getSkyLightArray().raw(), 0, sectionSkyLights[i], 0, 2048);
             }
 
             sectionEmitLights[i] = new byte[2048];
-            System.arraycopy(cs[i].getEmittedLightArray().a(), 0, sectionEmitLights[i], 0, 2048);
+            System.arraycopy(cs[i].getEmittedLightArray().raw(), 0, sectionEmitLights[i], 0, 2048);
          }
       }
 

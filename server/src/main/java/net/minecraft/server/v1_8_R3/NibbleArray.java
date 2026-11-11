@@ -1,10 +1,11 @@
 package net.minecraft.server.v1_8_R3;
 
 public class NibbleArray {
-   private final byte[] a;
+   private static final byte[] EMPTY = new byte[2048];
+   private byte[] a;
 
    public NibbleArray() {
-      this.a = new byte[2048];
+      this.a = EMPTY;
    }
 
    public NibbleArray(byte[] abyte) {
@@ -28,12 +29,24 @@ public class NibbleArray {
    }
 
    public void a(int i, int j) {
+      if (this.a == EMPTY) {
+         this.a = new byte[2048];
+      }
+
       int k = i >> 1;
       int shift = (i & 1) << 2;
       this.a[k] = (byte)(this.a[k] & ~(15 << shift) | (j & 15) << shift);
    }
 
    public byte[] a() {
+      if (this.a == EMPTY) {
+         this.a = new byte[2048];
+      }
+
+      return this.a;
+   }
+
+   public byte[] raw() {
       return this.a;
    }
 

@@ -87,11 +87,11 @@ public class PacketPlayOutMapChunk implements Packet<PacketListenerPlayOut> {
                map.a[blockWriteIndex++] = (byte)(blockId >> '\b' & 0xFF);
             }
 
-            byte[] emittedLight = section.getEmittedLightArray().a();
+            byte[] emittedLight = section.getEmittedLightArray().raw();
             System.arraycopy(emittedLight, 0, map.a, emittedLightIndex, 2048);
             emittedLightIndex += 2048;
             if (hasSky) {
-               byte[] skylight = section.getSkyLightArray().a();
+               byte[] skylight = section.getSkyLightArray().raw();
                System.arraycopy(skylight, 0, map.a, skylightIndex, 2048);
                skylightIndex += 2048;
             }
@@ -153,11 +153,11 @@ public class PacketPlayOutMapChunk implements Packet<PacketListenerPlayOut> {
             map.a[blockWriteIndex++] = (byte)(blockId >> '\b' & 0xFF);
          }
 
-         byte[] emittedLight = section.getEmittedLightArray().a();
+         byte[] emittedLight = section.getEmittedLightArray().raw();
          System.arraycopy(emittedLight, 0, map.a, emittedLightIndex, 2048);
          emittedLightIndex += 2048;
          if (hasSky) {
-            byte[] skylight = section.getSkyLightArray().a();
+            byte[] skylight = section.getSkyLightArray().raw();
             System.arraycopy(skylight, 0, map.a, skylightIndex, 2048);
             skylightIndex += 2048;
          }

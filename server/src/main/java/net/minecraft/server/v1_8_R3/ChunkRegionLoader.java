@@ -219,11 +219,11 @@ public class ChunkRegionLoader implements IChunkLoader, IAsyncChunkSaver {
                nbttagcompound1.setByteArray("Add", nibblearray1.a());
             }
 
-            nbttagcompound1.setByteArray("BlockLight", chunksection.getEmittedLightArray().a());
+            nbttagcompound1.setByteArray("BlockLight", chunksection.getEmittedLightArray().raw());
             if (flag) {
-               nbttagcompound1.setByteArray("SkyLight", chunksection.getSkyLightArray().a());
+               nbttagcompound1.setByteArray("SkyLight", chunksection.getSkyLightArray().raw());
             } else {
-               nbttagcompound1.setByteArray("SkyLight", new byte[chunksection.getEmittedLightArray().a().length]);
+               nbttagcompound1.setByteArray("SkyLight", new byte[chunksection.getEmittedLightArray().raw().length]);
             }
 
             nbttaglist.add(nbttagcompound1);
