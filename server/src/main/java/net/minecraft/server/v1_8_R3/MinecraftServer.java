@@ -1096,7 +1096,7 @@ public abstract class MinecraftServer implements ICommandListener, IAsyncTaskHan
          try {
             return Futures.immediateFuture(callable.call());
          } catch (Exception var3) {
-            return Futures.immediateFailedCheckedFuture(var3);
+            return Futures.immediateFailedFuture(var3);
          }
       }
    }

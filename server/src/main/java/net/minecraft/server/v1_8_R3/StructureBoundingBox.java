@@ -1,6 +1,6 @@
 package net.minecraft.server.v1_8_R3;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public class StructureBoundingBox {
    public int a;
@@ -140,7 +140,7 @@ public class StructureBoundingBox {
 
    @Override
    public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
          .add("x0", this.a)
          .add("y0", this.b)
          .add("z0", this.c)

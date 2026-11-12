@@ -1,6 +1,6 @@
 package net.minecraft.server.v1_8_R3;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
 public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
@@ -98,7 +98,7 @@ public class BaseBlockPosition implements Comparable<BaseBlockPosition> {
 
    @Override
    public String toString() {
-      return Objects.toStringHelper(this).add("x", this.a).add("y", this.c).add("z", this.d).toString();
+      return MoreObjects.toStringHelper(this).add("x", this.a).add("y", this.c).add("z", this.d).toString();
    }
 
    public int compareTo(@NotNull BaseBlockPosition object) {

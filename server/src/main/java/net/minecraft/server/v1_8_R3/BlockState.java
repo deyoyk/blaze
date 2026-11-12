@@ -1,6 +1,6 @@
 package net.minecraft.server.v1_8_R3;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import net.techcable.tacospigot.BlockStateRegistry;
 
 public abstract class BlockState<T extends Comparable<T>> implements IBlockState<T> {
@@ -39,7 +39,7 @@ public abstract class BlockState<T extends Comparable<T>> implements IBlockState
 
    @Override
    public String toString() {
-      return Objects.toStringHelper(this).add("name", this.b).add("clazz", this.a).add("values", this.c()).toString();
+      return MoreObjects.toStringHelper(this).add("name", this.b).add("clazz", this.a).add("values", this.c()).toString();
    }
 
    @Override

@@ -1,6 +1,7 @@
 package net.minecraft.server.v1_8_R3;
 
 import com.google.common.collect.Iterators;
+import java.util.Collections;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -96,13 +97,13 @@ public class EntitySlice<T> extends AbstractSet<T> {
    public <S> Iterable c(Class<S> oclass) {
       return () -> {
          List<T> list = this.b.get(this.b(oclass));
-         return (Iterator)(list == null ? Collections.emptyIterator() : Iterators.filter(list.iterator(), oclass));
+         return (Iterator)(list == null ? Collections.<T>emptyList().iterator() : Iterators.filter(list.iterator(), oclass));
       };
    }
 
    @Override
    public Iterator<T> iterator() {
-      return this.e.isEmpty() ? Iterators.emptyIterator() : Iterators.unmodifiableIterator(this.e.iterator());
+      return this.e.isEmpty() ? Collections.<T>emptyList().iterator() : Iterators.unmodifiableIterator(this.e.iterator());
    }
 
    @Override
