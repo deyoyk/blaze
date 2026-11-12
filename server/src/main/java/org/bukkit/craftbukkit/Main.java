@@ -20,6 +20,7 @@ public class Main {
    public static boolean useConsole = true;
 
    public static void main(String[] args) {
+      disableNettyUnsafeOnModernJava();
       OptionParser parser = new OptionParser() {
          {
             this.acceptsAll(Main.asList("?", "help"), "Show the help");
@@ -166,6 +167,19 @@ public class Main {
          } catch (Throwable var5) {
             var5.printStackTrace();
          }
+      }
+   }
+
+   private static void disableNettyUnsafeOnModernJava() {
+      String specification = System.getProperty("java.specification.version", "1.8");
+      try {
+         int version = specification.startsWith("1.")
+            ? Integer.parseInt(specification.substring(2))
+            : Integer.parseInt(specification.split("\\.")[0]);
+         if (version >= 24) {
+            System.setProperty("io.netty.noUnsafe", "true");
+         }
+      } catch (NumberFormatException ignored) {
       }
    }
 

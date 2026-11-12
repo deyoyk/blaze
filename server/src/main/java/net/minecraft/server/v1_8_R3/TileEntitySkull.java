@@ -1,8 +1,9 @@
 package net.minecraft.server.v1_8_R3;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Predicate;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.mojang.authlib.Agent;
 import com.mojang.authlib.GameProfile;
@@ -18,34 +19,37 @@ public class TileEntitySkull extends TileEntity {
    private int a;
    private int rotation;
    private GameProfile g = null;
-   public static final LoadingCache<String, GameProfile> skinCache = Caffeine.newBuilder()
+   public static final LoadingCache<String, GameProfile> skinCache = CacheBuilder.newBuilder()
       .maximumSize(5000L)
       .expireAfterAccess(60L, TimeUnit.MINUTES)
-      .build(key -> {
-         final GameProfile[] profiles = new GameProfile[1];
-         ProfileLookupCallback gameProfileLookup = new ProfileLookupCallback() {
-            public void onProfileLookupSucceeded(GameProfile gp) {
-               profiles[0] = gp;
+      .build(new CacheLoader<String, GameProfile>() {
+         @Override
+         public GameProfile load(String key) {
+            final GameProfile[] profiles = new GameProfile[1];
+            ProfileLookupCallback gameProfileLookup = new ProfileLookupCallback() {
+               public void onProfileLookupSucceeded(GameProfile gp) {
+                  profiles[0] = gp;
+               }
+
+               public void onProfileLookupFailed(GameProfile gp, Exception excptn) {
+                  profiles[0] = gp;
+               }
+            };
+            MinecraftServer.getServer().getGameProfileRepository().findProfilesByNames(new String[]{key}, Agent.MINECRAFT, gameProfileLookup);
+            GameProfile profile = profiles[0];
+            if (profile == null) {
+               UUID uuid = EntityHuman.a(new GameProfile(null, key));
+               profile = new GameProfile(uuid, key);
+               gameProfileLookup.onProfileLookupSucceeded(profile);
+            } else {
+               Property property = (Property)Iterables.getFirst(profile.getProperties().get("textures"), null);
+               if (property == null) {
+                  profile = MinecraftServer.getServer().aD().fillProfileProperties(profile, true);
+               }
             }
 
-            public void onProfileLookupFailed(GameProfile gp, Exception excptn) {
-               profiles[0] = gp;
-            }
-         };
-         MinecraftServer.getServer().getGameProfileRepository().findProfilesByNames(new String[]{key}, Agent.MINECRAFT, gameProfileLookup);
-         GameProfile profile = profiles[0];
-         if (profile == null) {
-            UUID uuid = EntityHuman.a(new GameProfile(null, key));
-            profile = new GameProfile(uuid, key);
-            gameProfileLookup.onProfileLookupSucceeded(profile);
-         } else {
-            Property property = (Property)Iterables.getFirst(profile.getProperties().get("textures"), null);
-            if (property == null) {
-               profile = MinecraftServer.getServer().aD().fillProfileProperties(profile, true);
-            }
+            return profile;
          }
-
-         return profile;
       });
 
    @Override
@@ -127,7 +131,7 @@ public class TileEntitySkull extends TileEntity {
                callback.apply(profile);
             } else {
                Blaze.getInstance().getThreadingManager().getAsyncExecutor().queueHeadLoading(() -> {
-                  GameProfile profile1 = (GameProfile)skinCache.get(gameprofile.getName().toLowerCase(Locale.ROOT));
+                  GameProfile profile1 = (GameProfile)skinCache.getUnchecked(gameprofile.getName().toLowerCase(Locale.ROOT));
                   MinecraftServer.getServer().processQueue.add(() -> {
                      if (profile1 == null) {
                         callback.apply(gameprofile);
