@@ -167,6 +167,53 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.github.wvengen</groupId>
+                <artifactId>proguard-maven-plugin</artifactId>
+                <version>2.7.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>proguard</goal></goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <maxMemory>2g</maxMemory>
+                    <includeDependency>false</includeDependency>
+                    <addManifest>true</addManifest>
+                    <generateTemporaryConfigurationFile>true</generateTemporaryConfigurationFile>
+                    <proguardInclude>${project.basedir}/proguard.conf</proguardInclude>
+                    <libs>
+                        <lib>${java.home}/jmods/java.base.jmod</lib>
+                        <lib>${java.home}/jmods/java.desktop.jmod</lib>
+                        <lib>${java.home}/jmods/java.logging.jmod</lib>
+                        <lib>${java.home}/jmods/java.management.jmod</lib>
+                        <lib>${java.home}/jmods/java.naming.jmod</lib>
+                        <lib>${java.home}/jmods/java.sql.jmod</lib>
+                        <lib>${java.home}/jmods/java.xml.jmod</lib>
+                        <lib>${java.home}/jmods/jdk.unsupported.jmod</lib>
+                    </libs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>restore-multi-release</id>
+                        <phase>package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <zip update="true" destfile="${project.build.directory}/${project.build.finalName}.jar">
+                                    <zipfileset src="${project.build.directory}/${project.build.finalName}_proguard_base.jar" includes="META-INF/versions/**"/>
+                                </zip>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
