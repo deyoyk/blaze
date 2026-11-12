@@ -133,6 +133,12 @@ public class BlazeConfig extends Config {
    public static final ConfigSetting<Boolean> playerMovedTooQuicklyCheck = new ConfigSetting<>(
       true, "worlds.players", "Toggle spigots moved too quickly check."
    );
+   public static final ConfigSetting<Integer> playerPhaseCheckInterval = new ConfigSetting<>(
+      4, "worlds.players", "Ticks between full block-phase checks when a player moves less than the minimum distance."
+   );
+   public static final ConfigSetting<Double> playerPhaseCheckMinDistance = new ConfigSetting<>(
+      0.25, "worlds.players", "Minimum movement in blocks before running the expensive block-phase collision check."
+   );
    public static final ConfigSetting<Boolean> checkPlayerSleep = new ConfigSetting<>(true, "worlds.players");
    public static final ConfigSetting<Boolean> playerIdleTimer = new ConfigSetting<>(false, "worlds.players");
    public static final ConfigSetting<Double> playerPhaseLeniency = new ConfigSetting<>(

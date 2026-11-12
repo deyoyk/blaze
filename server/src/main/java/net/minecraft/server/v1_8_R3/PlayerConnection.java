@@ -171,6 +171,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    private boolean hasMoved;
    private long lastPlace = -1L;
    private int packets = 0;
+   private int lastPhaseCheckTick;
 
    public PlayerConnection(MinecraftServer minecraftserver, NetworkManager networkmanager, EntityPlayer entityplayer) {
       networkmanager.a(this);
@@ -450,9 +451,9 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                   this.player.setLocation(this.lastX, this.lastY, this.lastZ, yawx, pitchx);
                   double phaseLeniency = (Double)BlazeConfig.playerPhaseLeniency.getValue();
                   double diffY = locY - this.player.locY;
+                  double diffX = locX - this.player.locX;
+                  double diffZ = locZ - this.player.locZ;
                   if ((Boolean)BlazeConfig.playerMovedTooQuicklyCheck.getValue()) {
-                     double diffX = locX - this.player.locX;
-                     double diffZ = locZ - this.player.locZ;
                      double motionSquared = this.player.motX * this.player.motX + this.player.motY * this.player.motY + this.player.motZ * this.player.motZ;
                      double deltaSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
                      if (deltaSquared - motionSquared > SpigotConfig.movedTooQuicklyThreshold) {
@@ -462,7 +463,19 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                      }
                   }
 
-                  boolean couldHavePhased = packet.hasPos && !this.player.noclip;
+                  double movementSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
+                  double minPhaseDistance = (Double)BlazeConfig.playerPhaseCheckMinDistance.getValue();
+                  int phaseInterval = (Integer)BlazeConfig.playerPhaseCheckInterval.getValue();
+                  if (phaseInterval < 1) {
+                     phaseInterval = 1;
+                  }
+                  boolean periodicPhaseCheck = MinecraftServer.currentTick - this.lastPhaseCheckTick >= phaseInterval;
+                  boolean couldHavePhased = packet.hasPos
+                     && !this.player.noclip
+                     && (periodicPhaseCheck || movementSquared >= minPhaseDistance * minPhaseDistance);
+                  if (couldHavePhased) {
+                     this.lastPhaseCheckTick = MinecraftServer.currentTick;
+                  }
                   List<BlockPosition> oldCollisions = couldHavePhased
                      ? worldserver.getCollisionBlocks(this.player, this.player.getBoundingBox().shrink(phaseLeniency, phaseLeniency, phaseLeniency))
                      : null;

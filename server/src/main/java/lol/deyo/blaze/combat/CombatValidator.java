@@ -86,7 +86,7 @@ public final class CombatValidator {
       }
 
       if ((Boolean)BlazeConfig.combatLineOfSight.getValue()
-         && result.distance > 0.1
+         && result.distance > 1.5
          && !hasLineOfSight(attacker, result.victim)) {
          result.reason = "line-of-sight";
          return result;
