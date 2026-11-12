@@ -34,7 +34,7 @@ public abstract class Command {
          BukkitCommand command = new BukkitCommand(this.name) {
             public boolean execute(CommandSender sender, String commandLabel, String[] args) {
                if (Command.this.permission != null && !sender.hasPermission(Command.this.permission)) {
-                  Command.this.sendMessage(sender, LanguageConfig.insufficientPerm.getValue());
+                  Command.this.sendMessage(sender, CC.CREDITS, LanguageConfig.insufficientPerm.getValue());
                   return true;
                } else {
                   Command.this.execute(sender, args);

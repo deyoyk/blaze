@@ -99,6 +99,7 @@ public abstract class Command {
       if (this.testPermissionSilent(target)) {
          return true;
       } else {
+         target.sendMessage(org.bukkit.ChatColor.GOLD + "Blaze Spigot " + org.bukkit.ChatColor.YELLOW + "by deyo");
          if (this.permissionMessage == null) {
             target.sendMessage(
                org.bukkit.ChatColor.RED

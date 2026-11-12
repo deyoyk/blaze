@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class LanguageConfig extends Config {
-   public static final ConfigSetting<String> insufficientPerm = new ConfigSetting<>("&dBlaze &7| &cYou do not have access to this command.", "messages");
+   public static final ConfigSetting<String> insufficientPerm = new ConfigSetting<>("&cYou do not have permission to use this command.", "messages");
    public static final ConfigSetting<String> onlyPlayer = new ConfigSetting<>("&dThis command can only be used by players.", "messages");
    public static final ConfigSetting<String> playerNotFound = new ConfigSetting<>("&ePlayer &d%player% &ecould not be found.", "messages");
    public static final ConfigSetting<String> notValidType = new ConfigSetting<>("&eValue &d%value% &eis not type &a%type%&e.", "messages");

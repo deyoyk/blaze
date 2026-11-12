@@ -2,6 +2,7 @@ package org.bukkit.craftbukkit.v1_8_R3.command;
 
 import java.util.List;
 import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.ChatComponentText;
 import net.minecraft.server.v1_8_R3.ChatMessage;
 import net.minecraft.server.v1_8_R3.CommandAbstract;
 import net.minecraft.server.v1_8_R3.CommandBlockListenerAbstract;
@@ -135,6 +136,7 @@ public final class VanillaCommandWrapper extends VanillaCommand {
                j++;
             }
          } else {
+            icommandlistener.sendMessage(new ChatComponentText(lol.deyo.blaze.utils.CC.t(lol.deyo.blaze.utils.CC.CREDITS)));
             ChatMessage chatmessage = new ChatMessage("commands.generic.permission", new Object[0]);
             chatmessage.getChatModifier().setColor(EnumChatFormat.RED);
             icommandlistener.sendMessage(chatmessage);

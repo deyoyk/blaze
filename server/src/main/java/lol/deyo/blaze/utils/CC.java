@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 public class CC {
+   public static final String CREDITS = "&6Blaze Spigot &eby deyo";
    private static final String CONFIG_LINE_TOP = "================ [ Blaze ] ================";
    private static final String CONFIG_LINE_BOTTOM = "======================================================";
 

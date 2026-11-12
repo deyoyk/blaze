@@ -54,6 +54,7 @@ public class CommandHandler implements ICommandHandler {
             }
          }
       } else {
+         var1.sendMessage(new ChatComponentText(lol.deyo.blaze.utils.CC.t(lol.deyo.blaze.utils.CC.CREDITS)));
          ChatMessage var15 = new ChatMessage("commands.generic.permission");
          var15.getChatModifier().setColor(EnumChatFormat.RED);
          var1.sendMessage(var15);
