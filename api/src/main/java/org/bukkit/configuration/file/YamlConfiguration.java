@@ -154,7 +154,11 @@ public class YamlConfiguration extends FileConfiguration {
          config.load(file);
       } catch (FileNotFoundException var3) {
       } catch (InvalidConfigurationException | IOException var4) {
-         org.bukkit.Bukkit.getLogger().log(Level.SEVERE, "Cannot load " + file, (Throwable)var4);
+         if (org.bukkit.Bukkit.getServer() != null) {
+            org.bukkit.Bukkit.getLogger().log(Level.SEVERE, "Cannot load " + file, (Throwable)var4);
+         } else {
+            var4.printStackTrace();
+         }
       }
 
       return config;
