@@ -1,6 +1,7 @@
 package org.bukkit.craftbukkit;
 
 import lol.deyo.blaze.Blaze;
+import lol.deyo.blaze.console.ConsoleBanner;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -160,6 +161,7 @@ public class Main {
             new Blaze();
             System.setProperty("library.jansi.version", "Blaze");
             System.out.println("Loading libraries, please wait...");
+            ConsoleBanner.print();
             MinecraftServer.main(options);
          } catch (Throwable var5) {
             var5.printStackTrace();
