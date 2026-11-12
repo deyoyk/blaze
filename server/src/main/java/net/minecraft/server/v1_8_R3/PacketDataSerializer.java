@@ -131,7 +131,7 @@ public class PacketDataSerializer extends ByteBuf {
          this.writeByte(0);
       } else {
          try {
-            NBTCompressedStreamTools.a(nbttagcompound, (java.io.OutputStream)new ByteBufOutputStream(this));
+            NBTCompressedStreamTools.a(nbttagcompound, (java.io.DataOutput)new ByteBufOutputStream(this));
          } catch (Exception var3) {
             throw new EncoderException(var3);
          }
