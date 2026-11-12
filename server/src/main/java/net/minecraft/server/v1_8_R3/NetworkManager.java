@@ -147,12 +147,16 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
 
       this.channel.eventLoop().execute(() -> {
          if (compressionThreshold >= 0) {
-            this.channel.write(success);
             ChannelFuture compressionWrite = this.channel.writeAndFlush(new PacketLoginOutSetCompression(compressionThreshold));
             compressionWrite.addListener(future -> {
                if (future.isSuccess()) {
                   this.a(compressionThreshold);
-                  after.run();
+                  ChannelFuture successWrite = this.channel.writeAndFlush(success);
+                  successWrite.addListener(successFuture -> {
+                     if (successFuture.isSuccess()) {
+                        after.run();
+                     }
+                  });
                }
             });
          } else {
