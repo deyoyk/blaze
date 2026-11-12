@@ -323,7 +323,7 @@ public abstract class PlayerList {
       entityPlayer.playerConnection.writeOrQueuePacket(bulkPacket, writeLazily);
       if (entityPlayer.world == worldserver && !worldserver.players.contains(entityPlayer)) {
          worldserver.addEntity(entityPlayer);
-         this.a(entityPlayer, (IChatBaseComponent)null);
+         this.a(entityPlayer, (WorldServer)null);
       }
    }
 
