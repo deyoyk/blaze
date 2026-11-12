@@ -15,6 +15,7 @@ import java.io.RandomAccessFile;
 import java.util.Random;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPOutputStream;
+import net.jpountz.lz4.LZ4BlockOutputStream;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -24,7 +25,7 @@ public class RegionFileTest {
    public final TemporaryFolder folder = new TemporaryFolder();
 
    @Test
-   public void writesAndReadsLz4Chunks() throws Exception {
+   public void writesAndReadsVanillaZlibChunks() throws Exception {
       File file = this.folder.newFile("r.0.0.mca");
       byte[] payload = new byte[32768];
       new Random(1234L).nextBytes(payload);
@@ -34,7 +35,7 @@ public class RegionFileTest {
          writeChunk(region, 0, 0, payload);
          assertTrue(region.chunkExists(0, 0));
          assertFalse(region.chunkExists(1, 0));
-         assertEquals(4, compressionType(file, 0, 0));
+         assertEquals(2, compressionType(file, 0, 0));
          assertArrayEquals(payload, readChunk(region, 0, 0));
       } finally {
          region.c();
@@ -47,6 +48,46 @@ public class RegionFileTest {
          assertNull(reopened.a(1, 0));
       } finally {
          reopened.c();
+      }
+   }
+
+   @Test
+   public void readsLegacyLz4ChunksAndRewritesThemAsZlib() throws Exception {
+      File file = this.folder.newFile("r.0.0.mca");
+      byte[] payload = new byte[32768];
+      new Random(4321L).nextBytes(payload);
+      writeLegacyLz4Chunk(file, 0, 0, payload);
+
+      RegionFile region = new RegionFile(file);
+      try {
+         assertArrayEquals(payload, readChunk(region, 0, 0));
+         writeChunk(region, 0, 0, payload);
+         assertEquals(2, compressionType(file, 0, 0));
+         assertArrayEquals(payload, readChunk(region, 0, 0));
+      } finally {
+         region.c();
+      }
+   }
+
+   @Test
+   public void writesMultipleChunksWithoutOverlappingSectors() throws Exception {
+      File file = this.folder.newFile("r.0.0.mca");
+      RegionFile region = new RegionFile(file);
+      byte[][] payloads = new byte[32][];
+      Random random = new Random(9999L);
+
+      try {
+         for (int index = 0; index < payloads.length; index++) {
+            payloads[index] = new byte[1000 + random.nextInt(50000)];
+            random.nextBytes(payloads[index]);
+            writeChunk(region, index & 31, index >> 5, payloads[index]);
+         }
+
+         for (int index = 0; index < payloads.length; index++) {
+            assertArrayEquals(payloads[index], readChunk(region, index & 31, index >> 5));
+         }
+      } finally {
+         region.c();
       }
    }
 
@@ -139,6 +180,33 @@ public class RegionFileTest {
    private static int headerEntry(RandomAccessFile raf, int x, int z) throws Exception {
       raf.seek((x + z * 32) * 4L);
       return raf.readInt();
+   }
+
+   private static void writeLegacyLz4Chunk(File file, int x, int z, byte[] payload) throws Exception {
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      try (LZ4BlockOutputStream output = new LZ4BlockOutputStream(bytes, 16384)) {
+         output.write(payload);
+      }
+
+      writeRawChunk(file, x, z, bytes.toByteArray(), 4);
+   }
+
+   private static void writeRawChunk(File file, int x, int z, byte[] compressed, int compression) throws Exception {
+      try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+         if (raf.length() < 8192L) {
+            raf.setLength(8192L);
+         }
+
+         int start = (int)(raf.length() / 4096L);
+         int sectors = (compressed.length + 5 + 4095) / 4096;
+         raf.seek((x + z * 32) * 4L);
+         raf.writeInt(start << 8 | sectors);
+         raf.seek((long)start * 4096L);
+         raf.writeInt(compressed.length + 1);
+         raf.writeByte(compression);
+         raf.write(compressed);
+         raf.setLength((long)(start + sectors) * 4096L);
+      }
    }
 
    private static void writeLegacyChunk(File file, int x, int z, byte[] payload, int compression) throws Exception {

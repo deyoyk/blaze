@@ -1,6 +1,7 @@
 package net.minecraft.server.v1_8_R3;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -11,10 +12,10 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.BitSet;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import net.jpountz.lz4.LZ4BlockInputStream;
-import net.jpountz.lz4.LZ4BlockOutputStream;
 
 public class RegionFile {
    private static final byte[] a = new byte[4096];
@@ -24,7 +25,6 @@ public class RegionFile {
    private static final byte COMPRESSION_LZ4 = 4;
    private static final byte EXISTS = 1;
    private static final byte MISSING = 2;
-   private static final int LZ4_BLOCK_SIZE = 16384;
 
    private RandomAccessFile c;
    private final int[] d = new int[1024];
@@ -169,7 +169,9 @@ public class RegionFile {
    }
 
    public DataOutputStream b(int i, int j) {
-      return this.d(i, j) ? null : new DataOutputStream(new LZ4BlockOutputStream(new RegionFile.ChunkBuffer(i, j), LZ4_BLOCK_SIZE));
+      return this.d(i, j)
+         ? null
+         : new DataOutputStream(new BufferedOutputStream(new DeflaterOutputStream(new RegionFile.ChunkBuffer(i, j))));
    }
 
    private int findFreeRun(int length) {
@@ -238,7 +240,7 @@ public class RegionFile {
    private void a(int i, byte[] abyte, int j) throws IOException {
       this.c.seek(i * 4096L);
       this.c.writeInt(j + 1);
-      this.c.writeByte(COMPRESSION_LZ4);
+      this.c.writeByte(COMPRESSION_ZLIB);
       this.c.write(abyte, 0, j);
    }
 
