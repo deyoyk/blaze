@@ -140,6 +140,22 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
       }
    }
 
+   public void handleInstant(Packet<?> packet) {
+      if (this.channel == null || !this.channel.isActive()) {
+         return;
+      }
+
+      Runnable write = () -> {
+         ChannelFuture future = this.channel.writeAndFlush(packet);
+         future.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+      };
+      if (this.channel.eventLoop().inEventLoop()) {
+         write.run();
+      } else {
+         this.channel.eventLoop().execute(write);
+      }
+   }
+
    public void sendLoginSequence(Packet<?> success, int compressionThreshold, Runnable after) {
       if (this.channel == null || !this.channel.isActive()) {
          return;

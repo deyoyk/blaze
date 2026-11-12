@@ -899,7 +899,11 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
          }
 
          if (this.shouldSend(packet)) {
-            this.networkManager.handle(packet);
+            if (this.isInstantPacket(packet)) {
+               this.networkManager.handleInstant(packet);
+            } else {
+               this.networkManager.handle(packet);
+            }
          }
 
          if (packet instanceof PacketPlayOutOpenWindow) {
@@ -935,6 +939,15 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
       if (this.shouldSend(packet)) {
          this.networkManager.fastNetworkManager.queueEntityTrackerPacket(packet, trackerThread);
       }
+   }
+
+   private boolean isInstantPacket(Packet<?> packet) {
+      return packet instanceof PacketPlayOutEntityVelocity
+         || packet instanceof PacketPlayOutEntityTeleport
+         || packet instanceof PacketPlayOutPosition
+         || packet instanceof PacketPlayOutEntityStatus
+         || packet instanceof PacketPlayOutKeepAlive
+         || packet instanceof PacketPlayOutTransaction;
    }
 
    private boolean shouldSend(Packet<?> packet) {
@@ -1299,6 +1312,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
          PlayerConnectionUtils.ensureMainThread(packetplayinuseentity, this, this.player.u());
          WorldServer worldserver = this.minecraftServer.getWorldServer(this.player.dimension);
          Entity entity = packetplayinuseentity.a(worldserver);
+         CombatMetrics.recordUseEntity(entity == null);
          if (entity == this.player && !this.player.isSpectator()) {
             this.disconnect("Cannot interact with self!");
          } else {
