@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" packages="net.minecrell.terminalconsole">
+<Configuration status="WARN" packages="lol.deyo.blaze.console,net.minecrell.terminalconsole">
     <Appenders>
         <TerminalConsole name="TerminalConsole">
-            <PatternLayout pattern="%highlightError{[%d{HH:mm:ss} %level]: %minecraftFormatting{%msg}%n%xEx}"/>
+            <PatternLayout pattern="%blazeConsole%n%xEx"/>
         </TerminalConsole>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %minecraftFormatting{%msg}{strip}%n"/>
