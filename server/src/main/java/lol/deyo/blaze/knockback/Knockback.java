@@ -42,7 +42,7 @@ public class Knockback extends Config implements IKnockback {
    public final ConfigSetting<Float> potionSpeed = new ConfigSetting<>(0.5F, "", "Throwing multiplier value");
    public final ConfigSetting<Float> potionVerticalOffset = new ConfigSetting<>(-10.0F, "", "Vertical throwing offset value");
    public final ConfigSetting<Boolean> potionFast = new ConfigSetting<>(true, "", "Make heal potions throwing smoother");
-   public final ConfigSetting<Integer> hitDelay = new ConfigSetting<>(20, "", "Delay between victim can get hit");
+   public final ConfigSetting<Integer> hitDelay = new ConfigSetting<>(2, "", "Delay between victim can get hit (2 ticks for responsive 1.8 PvP)");
    public final ConfigSetting<Integer> hitDelayArrow = new ConfigSetting<>(20, "", "Delay between victim can get hit by an arrow (Patches arrow bounce bug)");
    public final ConfigSetting<Boolean> comboMode = new ConfigSetting<>(false, "", "Enable combo mode");
    public final ConfigSetting<Double> comboHeight = new ConfigSetting<>(2.3, "", "Maximum height of combo");
