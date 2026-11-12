@@ -52,6 +52,7 @@ public class ChunkSection {
 
    public void setBlockId(int id, char value) {
       this.blockStorage.set(id, value);
+      this.isDirty = true;
    }
 
    public IBlockData getType(int x, int y, int z) {
@@ -197,6 +198,7 @@ public class ChunkSection {
 
    public void a(char[] achar) {
       this.blockStorage.setValues(achar);
+      this.isDirty = true;
    }
 
    public NibbleArray getEmittedLightArray() {
@@ -209,10 +211,12 @@ public class ChunkSection {
 
    public void a(NibbleArray nibblearray) {
       this.emittedLight = nibblearray;
+      this.isDirty = true;
    }
 
    public void b(NibbleArray nibblearray) {
       this.skyLight = nibblearray;
+      this.isDirty = true;
    }
 
    private NibbleArray clone(NibbleArray array) {

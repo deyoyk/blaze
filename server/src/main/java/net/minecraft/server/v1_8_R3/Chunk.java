@@ -130,7 +130,7 @@ public class Chunk {
                      isDirty = true;
                      this.emptySectionBits |= 1 << i;
                   }
-               } else if ((this.emptySectionBits & 1 << i) == 1) {
+               } else if ((this.emptySectionBits & 1 << i) != 0) {
                   isDirty = true;
                   this.emptySectionBits &= ~(1 << i);
                   section.isDirty = false;
@@ -1167,6 +1167,8 @@ public class Chunk {
          c.warn("Could not set level chunk sections, array length is {} instead of {}", new Object[]{achunksection.length, this.sections.length});
       } else {
          System.arraycopy(achunksection, 0, this.sections, 0, this.sections.length);
+         this.chunkMap = null;
+         this.emptySectionBits = 0;
       }
    }
 
