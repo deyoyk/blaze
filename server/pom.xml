@@ -145,6 +145,11 @@
                                         <exclude>org/hamcrest/**</exclude>
                                         <exclude>META-INF/versions/*/module-info.class</exclude>
                                         <exclude>META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat</exclude>
+                                        <exclude>org/checkerframework/**</exclude>
+                                        <exclude>com/google/errorprone/**</exclude>
+                                        <exclude>com/google/j2objc/**</exclude>
+                                        <exclude>org/jspecify/**</exclude>
+                                        <exclude>org/jetbrains/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
