@@ -1312,10 +1312,10 @@ public final class CraftServer implements org.bukkit.Server {
          }
       }
 
-      if (!result.containsKey("gmc")) {
+      if (!result.containsKey("gmc") && this.commandMap.getCommand("gmc") == null) {
          result.put("gmc", new String[]{"gamemode creative"});
       }
-      if (!result.containsKey("gms")) {
+      if (!result.containsKey("gms") && this.commandMap.getCommand("gms") == null) {
          result.put("gms", new String[]{"gamemode survival"});
       }
 
