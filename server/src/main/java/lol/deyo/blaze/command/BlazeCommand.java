@@ -1,6 +1,7 @@
 package lol.deyo.blaze.command;
 
 import lol.deyo.blaze.Blaze;
+import lol.deyo.blaze.combat.CombatMetrics;
 import lol.deyo.blaze.configs.LanguageConfig;
 import lol.deyo.blaze.framework.commands.Command;
 import lol.deyo.blaze.menu.MainBlazeMenu;
@@ -20,6 +21,11 @@ public class BlazeCommand extends Command {
 
    @Override
    public void execute(CommandSender sender, String[] args) {
+      if (args.length != 0 && args[0].equalsIgnoreCase("combat")) {
+         CombatMetrics.print(sender);
+         return;
+      }
+
       if (args.length != 0 && args[0].equalsIgnoreCase("reload")) {
          long now = System.currentTimeMillis();
          Blaze.getInstance().reload();

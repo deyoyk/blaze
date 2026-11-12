@@ -99,6 +99,11 @@ public class EntityTrackerEntry {
    }
 
    public void track(List<EntityHuman> list, int trackerThread) {
+      if (this.trackedPlayers.isEmpty()) {
+         this.m++;
+         return;
+      }
+
       this.n = false;
       if (!this.isMoving || this.tracker.e(this.q, this.r, this.s) > 16.0) {
          this.q = this.tracker.locX;

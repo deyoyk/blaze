@@ -26,6 +26,7 @@ public class DamageSource {
    private boolean x;
    private boolean y;
    public String translationIndex;
+   public long hitNanos;
 
    public static DamageSource mobAttack(EntityLiving entityliving) {
       return new EntityDamageSource("mob", entityliving);

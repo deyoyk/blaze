@@ -6,6 +6,7 @@ public class PacketPlayInUseEntity implements Packet<PacketListenerPlayIn> {
    private int a;
    private PacketPlayInUseEntity.EnumEntityUseAction action;
    private Vec3D c;
+   public long receiveNanos;
 
    @Override
    public void a(PacketDataSerializer serializer) throws IOException {

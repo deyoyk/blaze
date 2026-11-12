@@ -183,6 +183,57 @@ public class BlazeConfig extends Config {
    public static final ConfigSetting<Integer> childNettyThreads = new ConfigSetting<>(
       0, "worlds.players.networking", "Default is 4, 0 is recommended which uses all processors available but will increase cpu usage.", false
    );
+   public static final ConfigSetting<Integer> pingSampleIntervalTicks = new ConfigSetting<>(
+      20, "worlds.players.networking", "Keep-alive interval used for ping and jitter tracking, in ticks."
+   );
+   public static final ConfigSetting<Boolean> flushConsolidation = new ConfigSetting<>(
+      true, "worlds.players.networking", "Consolidate non-critical play-state Netty flushes while keeping combat packets instant."
+   );
+   public static final ConfigSetting<Integer> maxPacketsPerDrain = new ConfigSetting<>(
+      4096, "worlds.players.networking", "Maximum queued packets handled in one tick-loop drain."
+   );
+   public static final ConfigSetting<Boolean> combatLagCompensation = new ConfigSetting<>(
+      true, "worlds.players.combat", "Validate player attacks against the victim's historical hitbox."
+   );
+   public static final ConfigSetting<Boolean> combatDebug = new ConfigSetting<>(
+      false, "worlds.players.combat", "Log every accepted and rejected melee attack for tuning."
+   );
+   public static final ConfigSetting<Double> combatSurvivalReach = new ConfigSetting<>(
+      3.0, "worlds.players.combat", "Base survival attack reach in blocks."
+   );
+   public static final ConfigSetting<Double> combatCreativeReach = new ConfigSetting<>(
+      5.0, "worlds.players.combat", "Base creative attack reach in blocks."
+   );
+   public static final ConfigSetting<Double> combatReachTolerance = new ConfigSetting<>(
+      0.15, "worlds.players.combat", "Extra reach allowed for 1.8 hitbox and interpolation differences."
+   );
+   public static final ConfigSetting<Integer> combatMaxRewindMillis = new ConfigSetting<>(
+      300, "worlds.players.combat", "Maximum victim position rewind in milliseconds."
+   );
+   public static final ConfigSetting<Double> combatRewindMultiplier = new ConfigSetting<>(
+      1.0, "worlds.players.combat", "Multiplier applied to the attacker's measured ping when rewinding."
+   );
+   public static final ConfigSetting<Boolean> combatLineOfSight = new ConfigSetting<>(
+      true, "worlds.players.combat", "Require a clear block line of sight to the historical hitbox."
+   );
+   public static final ConfigSetting<Double> combatLineOfSightTolerance = new ConfigSetting<>(
+      0.35, "worlds.players.combat", "Block ray tolerance used for line-of-sight checks."
+   );
+   public static final ConfigSetting<Double> combatMinAimDot = new ConfigSetting<>(
+      0.0, "worlds.players.combat", "Minimum look-direction dot product for an attack. 0 disables the check."
+   );
+   public static final ConfigSetting<Integer> combatAttackRateLimitMs = new ConfigSetting<>(
+      25, "worlds.players.combat", "Minimum time between accepted attack packets from one player."
+   );
+   public static final ConfigSetting<Boolean> timestampHitDelay = new ConfigSetting<>(
+      true, "worlds.players.combat", "Use real-time hit timestamps instead of server ticks for player hit delay."
+   );
+   public static final ConfigSetting<String> knockbackSyncMode = new ConfigSetting<>(
+      "CLIENT", "worlds.players.combat", "CLIENT keeps existing knockback behavior; SERVER also applies velocity to server motion."
+   );
+   public static final ConfigSetting<Integer> playerTrackingInterval = new ConfigSetting<>(
+      1, "worlds.players.combat", "Ticks between player position updates. 1 is recommended for competitive PvP."
+   );
    public static final ConfigSetting<String> globalActiveKnockback = new ConfigSetting<>(
       "Default", "worlds.players.knockback", "Which profile should we use as the default", false
    );

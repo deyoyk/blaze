@@ -44,6 +44,8 @@ public class Blaze implements IBlaze {
    private final List<PacketHandler> packetHandlers;
    private final List<MovementHandler> movementHandlers;
    private final List<PearlHandler> pearlHandlers;
+   private volatile PacketHandler[] packetHandlerArray = new PacketHandler[0];
+   private volatile MovementHandler[] movementHandlerArray = new MovementHandler[0];
    private final BlazeConfig blazeConfig;
    private final LanguageConfig languageConfig;
    private final PearlConfig pearlConfig;
@@ -204,11 +206,27 @@ public class Blaze implements IBlaze {
    @Override
    public void addMovementHandler(MovementHandler movementHandler) {
       this.movementHandlers.add(movementHandler);
+      this.movementHandlerArray = this.movementHandlers.toArray(new MovementHandler[0]);
+   }
+
+   public MovementHandler[] getMovementHandlerArray() {
+      if (this.movementHandlerArray.length != this.movementHandlers.size()) {
+         this.movementHandlerArray = this.movementHandlers.toArray(new MovementHandler[0]);
+      }
+      return this.movementHandlerArray;
    }
 
    @Override
    public void addPacketHandler(PacketHandler packetHandler) {
       this.packetHandlers.add(packetHandler);
+      this.packetHandlerArray = this.packetHandlers.toArray(new PacketHandler[0]);
+   }
+
+   public PacketHandler[] getPacketHandlerArray() {
+      if (this.packetHandlerArray.length != this.packetHandlers.size()) {
+         this.packetHandlerArray = this.packetHandlers.toArray(new PacketHandler[0]);
+      }
+      return this.packetHandlerArray;
    }
 
    @Override

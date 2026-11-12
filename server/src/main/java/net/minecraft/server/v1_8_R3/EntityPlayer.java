@@ -3,6 +3,7 @@ package net.minecraft.server.v1_8_R3;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
+import lol.deyo.blaze.combat.CombatResult;
 import lol.deyo.blaze.configs.BlazeConfig;
 import io.netty.buffer.Unpooled;
 import java.util.ArrayDeque;
@@ -256,6 +257,10 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
                this.setSpectatorTarget(this);
             }
          }
+      }
+
+      if (this.playerConnection != null) {
+         this.playerConnection.positionHistory.record(this, System.nanoTime());
       }
    }
 
@@ -1028,10 +1033,15 @@ public class EntityPlayer extends EntityHuman implements ICrafting {
 
    @Override
    public void attack(Entity entity) {
+      this.attack(entity, null);
+   }
+
+   @Override
+   public void attack(Entity entity, CombatResult combat) {
       if (this.playerInteractManager.getGameMode() == WorldSettings.EnumGamemode.SPECTATOR) {
          this.setSpectatorTarget(entity);
       } else {
-         super.attack(entity);
+         super.attack(entity, combat);
       }
    }
 

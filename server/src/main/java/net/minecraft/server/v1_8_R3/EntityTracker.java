@@ -22,7 +22,11 @@ public class EntityTracker {
 
    public void track(Entity entity) {
       if (entity instanceof EntityPlayer) {
-         this.addEntity(entity, 512, 2);
+         int interval = (Integer)BlazeConfig.playerTrackingInterval.getValue();
+         if (interval < 1) {
+            interval = 1;
+         }
+         this.addEntity(entity, 512, interval);
       } else if (entity instanceof EntityFishingHook) {
          this.addEntity(entity, 64, Integer.MAX_VALUE, false);
       } else if (entity instanceof EntityPotion) {

@@ -86,18 +86,19 @@ public class LoginListener implements PacketLoginInListener, IUpdatePlayerListBo
                if (s != null) {
                   this.g = LoginListener.EnumProtocolState.ACCEPTED;
                   int compressionThreshold = this.server.aK();
-                  if (compressionThreshold >= 0 && !this.networkManager.c()) {
-                     this.networkManager
-                        .a(new PacketLoginOutSetCompression(compressionThreshold), (ChannelFutureListener)future -> this.networkManager.a(compressionThreshold));
+                  if (this.networkManager.c()) {
+                     compressionThreshold = -1;
                   }
 
-                  this.networkManager.handle(new PacketLoginOutSuccess(this.i));
-
-                  try {
-                     this.server.getPlayerList().a(this.networkManager, this.server.getPlayerList().processLogin(this.i, s));
-                  } catch (NullPointerException var4) {
-                     s.getBukkitEntity().kickPlayer("Failed to process your login request.");
-                  }
+                  this.networkManager.sendLoginSequence(new PacketLoginOutSuccess(this.i), compressionThreshold, () -> {
+                     MinecraftServer.getServer().postToMainThread(() -> {
+                        try {
+                           this.server.getPlayerList().a(this.networkManager, this.server.getPlayerList().processLogin(this.i, s));
+                        } catch (NullPointerException var4) {
+                           s.getBukkitEntity().kickPlayer("Failed to process your login request.");
+                        }
+                     });
+                  });
                }
             }
          );

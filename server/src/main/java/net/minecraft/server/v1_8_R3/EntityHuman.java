@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import lol.deyo.blaze.Blaze;
+import lol.deyo.blaze.combat.CombatResult;
 import lol.deyo.blaze.configs.BlazeConfig;
 import lol.deyo.blaze.knockback.Knockback;
 import lol.deyo.blaze.knockback.KnockbackType;
@@ -889,6 +890,10 @@ public abstract class EntityHuman extends EntityLiving {
    }
 
    public void attack(Entity entity) {
+      this.attack(entity, null);
+   }
+
+   public void attack(Entity entity, CombatResult combat) {
       if (entity.aD() && !entity.l(this)) {
          float f = (float)this.getAttributeInstance(GenericAttributes.ATTACK_DAMAGE).getValue();
          float f1;
@@ -926,7 +931,9 @@ public abstract class EntityHuman extends EntityLiving {
             double victimMotX = entity.motX;
             double victimMotY = entity.motY;
             double victimMotZ = entity.motZ;
-            boolean flag2 = entity.damageEntity(DamageSource.playerAttack(this), f);
+            DamageSource playerDamage = DamageSource.playerAttack(this);
+            playerDamage.hitNanos = combat == null ? System.nanoTime() : combat.clickNanos;
+            boolean flag2 = entity.damageEntity(playerDamage, f);
             if (flag2) {
                int kbLevel = EnchantmentManager.a(this);
                if ((Boolean)BlazeConfig.overrideDefaultKnockback.getValue() && entity instanceof EntityPlayer && entity.velocityChanged) {
@@ -1017,10 +1024,7 @@ public abstract class EntityHuman extends EntityLiving {
                            victim.playerConnection.sendPacket(new PacketPlayOutEntityVelocity(victim));
                         }
 
-                        victim.velocityChanged = false;
-                        victim.motX = victimMotX;
-                        victim.motY = victimMotY;
-                        victim.motZ = victimMotZ;
+                        this.applyKnockbackSync(victim, victimMotX, victimMotY, victimMotZ);
                      } else if (type == KnockbackType.SIMPLE) {
                         SimpleKnockback knockbackx = profile.simpleKnockback;
                         int enchLvlx = kbLevel + 1;
@@ -1051,10 +1055,7 @@ public abstract class EntityHuman extends EntityLiving {
                               victim.playerConnection.sendPacket(new PacketPlayOutEntityVelocity(victim));
                            }
 
-                           victim.velocityChanged = false;
-                           victim.motX = victimMotX;
-                           victim.motY = victimMotY;
-                           victim.motZ = victimMotZ;
+                           this.applyKnockbackSync(victim, victimMotX, victimMotY, victimMotZ);
                         }
                      }
                   } catch (Exception var24) {
@@ -1115,6 +1116,22 @@ public abstract class EntityHuman extends EntityLiving {
             }
          }
       }
+   }
+
+   private void applyKnockbackSync(EntityPlayer victim, double victimMotX, double victimMotY, double victimMotZ) {
+      victim.velocityChanged = false;
+      String mode = (String)BlazeConfig.knockbackSyncMode.getValue();
+      if ("SERVER".equalsIgnoreCase(mode)) {
+         return;
+      }
+      if ("HYBRID".equalsIgnoreCase(mode)) {
+         victim.motY = victimMotY;
+         return;
+      }
+
+      victim.motX = victimMotX;
+      victim.motY = victimMotY;
+      victim.motZ = victimMotZ;
    }
 
    public void sendVelocityPacket(double victimMotX, double victimMotY, double victimMotZ, boolean resetFallDistance) {

@@ -112,13 +112,16 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
             boolean shouldReceive = true;
             if (this.m instanceof PlayerConnection) {
                PlayerConnection connection = (PlayerConnection)this.m;
-
-               for (PacketHandler handler : Blaze.getInstance().getPacketHandlers()) {
-                  shouldReceive = handler.handleReceivedPacket(connection, packet);
+               PacketHandler[] handlers = Blaze.getInstance().getPacketHandlerArray();
+               for (int i = 0; i < handlers.length; i++) {
+                  shouldReceive = handlers[i].handleReceivedPacket(connection, packet);
                }
             }
 
             if (shouldReceive) {
+               if (packet instanceof PacketPlayInUseEntity) {
+                  ((PacketPlayInUseEntity)packet).receiveNanos = System.nanoTime();
+               }
                packet.a(this.m);
             }
          } catch (CancelledPacketHandleException var7) {
@@ -135,6 +138,32 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet<?>> {
       if (this.channel != null && this.channel.isActive()) {
          this.a(packet, null);
       }
+   }
+
+   public void sendLoginSequence(Packet<?> success, int compressionThreshold, Runnable after) {
+      if (this.channel == null || !this.channel.isActive()) {
+         return;
+      }
+
+      this.channel.eventLoop().execute(() -> {
+         if (compressionThreshold >= 0) {
+            this.channel.write(success);
+            ChannelFuture compressionWrite = this.channel.writeAndFlush(new PacketLoginOutSetCompression(compressionThreshold));
+            compressionWrite.addListener(future -> {
+               if (future.isSuccess()) {
+                  this.a(compressionThreshold);
+                  after.run();
+               }
+            });
+         } else {
+            ChannelFuture successWrite = this.channel.writeAndFlush(success);
+            successWrite.addListener(future -> {
+               if (future.isSuccess()) {
+                  after.run();
+               }
+            });
+         }
+      });
    }
 
    public void writePacketLazily(Packet<?> packet) {

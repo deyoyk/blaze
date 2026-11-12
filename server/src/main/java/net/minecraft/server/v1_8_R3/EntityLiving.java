@@ -4,6 +4,7 @@ import com.eatthepath.uuid.FastUUID;
 import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Multimap;
+import lol.deyo.blaze.combat.CombatMetrics;
 import lol.deyo.blaze.configs.BlazeConfig;
 import lol.deyo.blaze.knockback.Knockback;
 import lol.deyo.blaze.knockback.KnockbackType;
@@ -59,6 +60,8 @@ public abstract class EntityLiving extends Entity {
    public float aB;
    public float aC;
    public int maxNoDamageTicks = 20;
+   public long lastPlayerHitNanos;
+   public long lastArrowHitNanos;
    public float aE;
    public float aF;
    public float aG;
@@ -659,7 +662,17 @@ public abstract class EntityLiving extends Entity {
                customMaxNoDamageTicks = arrow ? (Integer)knockback.hitDelayArrow.getValue() : (Integer)knockback.hitDelay.getValue();
             }
 
-            if (customMaxNoDamageTicks > 0 && currentTicks > customMaxNoDamageTicks / 2.0F) {
+            long hitNanos = damagesource.hitNanos != 0L ? damagesource.hitNanos : System.nanoTime();
+            boolean timestampHit = (Boolean)BlazeConfig.timestampHitDelay.getValue()
+               && (damagesource.getEntity() instanceof EntityHuman || arrow);
+            long lastHitNanos = arrow ? this.lastArrowHitNanos : this.lastPlayerHitNanos;
+            long hitDelayNanos = (long)customMaxNoDamageTicks * 25000000L;
+            if (timestampHit && lastHitNanos != 0L && hitNanos - lastHitNanos < hitDelayNanos) {
+               CombatMetrics.recordHitDelayReject();
+               return false;
+            }
+
+            if (!timestampHit && customMaxNoDamageTicks > 0 && currentTicks > customMaxNoDamageTicks / 2.0F) {
                if (f <= this.lastDamage
                   || (!(Boolean)BlazeConfig.patchDoubleHitBug.getValue() || !damagesource.translationIndex.equals("player"))
                      && !this.d(damagesource, f - this.lastDamage)) {
@@ -679,6 +692,14 @@ public abstract class EntityLiving extends Entity {
                this.hurtTicks = this.av = 10;
                if (arrow && knockback != null) {
                   this.noDamageTicksArrow = (Integer)knockback.hitDelayArrow.getValue();
+               }
+            }
+
+            if (timestampHit) {
+               if (arrow) {
+                  this.lastArrowHitNanos = hitNanos;
+               } else {
+                  this.lastPlayerHitNanos = hitNanos;
                }
             }
 

@@ -8,12 +8,18 @@ import com.google.common.primitives.Floats;
 import lol.deyo.blaze.Blaze;
 import lol.deyo.blaze.api.protocol.MovementHandler;
 import lol.deyo.blaze.api.protocol.PacketHandler;
+import lol.deyo.blaze.combat.CombatMetrics;
+import lol.deyo.blaze.combat.CombatResult;
+import lol.deyo.blaze.combat.CombatValidator;
+import lol.deyo.blaze.combat.PingTracker;
+import lol.deyo.blaze.combat.PlayerPositionHistory;
 import lol.deyo.blaze.configs.BlazeConfig;
 import lol.deyo.blaze.configs.LanguageConfig;
 import lol.deyo.blaze.configs.extra.ConfigEdit;
 import lol.deyo.blaze.knockback.extra.KnockbackEdit;
 import lol.deyo.blaze.utils.QueuedTeleport;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.flush.FlushConsolidationHandler;
 import io.netty.util.concurrent.Future;
 import it.unimi.dsi.fastutil.ints.Int2ShortMap;
 import it.unimi.dsi.fastutil.ints.Int2ShortOpenHashMap;
@@ -138,6 +144,9 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    private final MinecraftServer minecraftServer;
    private final Int2ShortMap n = new Int2ShortOpenHashMap();
    public EntityPlayer player;
+   public final PingTracker pingTracker = new PingTracker();
+   public final PlayerPositionHistory positionHistory = new PlayerPositionHistory();
+   public long lastAttackPacketNanos;
    public boolean processedDisconnect;
    private int e;
    private int f;
@@ -170,6 +179,13 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
       this.player = entityplayer;
       entityplayer.playerConnection = this;
       this.server = minecraftserver.server;
+      if ((Boolean)BlazeConfig.flushConsolidation.getValue() && networkmanager.channel != null) {
+         networkmanager.channel.eventLoop().execute(() -> {
+            if (networkmanager.channel.pipeline().get("flush_consolidation") == null) {
+               networkmanager.channel.pipeline().addLast("flush_consolidation", new FlushConsolidationHandler(256, true));
+            }
+         });
+      }
    }
 
    public CraftPlayer getPlayer() {
@@ -178,10 +194,15 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 
    @Override
    public void c() {
-      if (++this.e - this.k > 40L) {
+      int pingInterval = (Integer)BlazeConfig.pingSampleIntervalTicks.getValue();
+      if (pingInterval < 1) {
+         pingInterval = 20;
+      }
+      if (++this.e - this.k > pingInterval) {
          this.k = this.e;
          this.j = this.d();
          this.i = (int)this.j;
+         this.pingTracker.onKeepAliveSent(this.i, System.nanoTime());
          this.sendPacket(new PacketPlayOutKeepAlive(this.i));
       }
 
@@ -290,7 +311,8 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                   this.hasMoved = true;
                }
 
-               if (PlayerMoveEvent.getHandlerList().getRegisteredListeners().length > 0 || !Blaze.getInstance().getMovementHandlers().isEmpty()) {
+               MovementHandler[] movementHandlers = Blaze.getInstance().getMovementHandlerArray();
+               if (PlayerMoveEvent.getHandlerList().getRegisteredListeners().length > 0 || movementHandlers.length > 0) {
                   Location from = new Location(craftPlayer.getWorld(), this.lastPosX, this.lastPosY, this.lastPosZ, this.lastYaw, this.lastPitch);
                   Location to = craftPlayer.getLocation().clone();
                   if (packet.hasPos && packet.y != -999.0) {
@@ -315,7 +337,8 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                      boolean hasLook = packet.hasLook && deltaAngle > 0.0F;
                      boolean hasPos = packet.hasPos && delta > 0.0;
 
-                     for (MovementHandler handler : Blaze.getInstance().getMovementHandlers()) {
+                     for (int handlerIndex = 0; handlerIndex < movementHandlers.length; handlerIndex++) {
+                        MovementHandler handler = movementHandlers[handlerIndex];
                         if (hasPos) {
                            handler.handleUpdateLocation(craftPlayer, from, to, packet);
                            if (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ()) {
@@ -545,6 +568,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    }
 
    private void internalTeleport(double d0, double d1, double d2, float f, float f1, Set<PacketPlayOutPosition.EnumPlayerTeleportFlags> set) {
+      this.positionHistory.clear();
       if (Float.isNaN(f)) {
          f = 0.0F;
       }
@@ -903,9 +927,9 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    private boolean shouldSend(Packet<?> packet) {
       try {
          boolean shouldSend = true;
-
-         for (PacketHandler handler : Blaze.getInstance().getPacketHandlers()) {
-            shouldSend = handler.handleSentPacket(this, packet);
+         PacketHandler[] handlers = Blaze.getInstance().getPacketHandlerArray();
+         for (int i = 0; i < handlers.length; i++) {
+            shouldSend = handlers[i].handleSentPacket(this, packet);
          }
 
          return shouldSend;
@@ -1267,6 +1291,35 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
          } else {
             this.player.resetIdleTimer();
             if (entity != null) {
+               if (packetplayinuseentity.a() == PacketPlayInUseEntity.EnumEntityUseAction.ATTACK) {
+                  if (entity instanceof EntityItem
+                     || entity instanceof EntityExperienceOrb
+                     || entity instanceof EntityArrow
+                     || entity == this.player && !this.player.isSpectator()) {
+                     this.disconnect("Attempting to attack an invalid entity");
+                     this.minecraftServer.warning("Player " + this.player.getName() + " tried to attack an invalid entity");
+                     return;
+                  }
+
+                  ItemStack attackItem = this.player.inventory.getItemInHand();
+                  CombatResult combat = null;
+                  if ((Boolean)BlazeConfig.combatLagCompensation.getValue()) {
+                     combat = CombatValidator.validate(this.player, entity, packetplayinuseentity);
+                     CombatMetrics.record(this.player, entity instanceof EntityPlayer ? (EntityPlayer)entity : null, combat);
+                     if (!combat.accepted) {
+                        return;
+                     }
+                  } else if (this.player.h(entity) >= 81.0) {
+                     return;
+                  }
+
+                  this.player.attack(entity, combat);
+                  if (attackItem != null && attackItem.count <= -1) {
+                     this.player.updateInventory(this.player.activeContainer);
+                  }
+                  return;
+               }
+
                double d0 = 81.0;
                if (this.player.h(entity) < d0) {
                   ItemStack itemInHand = this.player.inventory.getItemInHand();
@@ -1308,20 +1361,6 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                      }
                   } else if (packetplayinuseentity.a() == PacketPlayInUseEntity.EnumEntityUseAction.INTERACT_AT) {
                      entity.a(this.player, packetplayinuseentity.b());
-                     if (itemInHand != null && itemInHand.count <= -1) {
-                        this.player.updateInventory(this.player.activeContainer);
-                     }
-                  } else if (packetplayinuseentity.a() == PacketPlayInUseEntity.EnumEntityUseAction.ATTACK) {
-                     if (entity instanceof EntityItem
-                        || entity instanceof EntityExperienceOrb
-                        || entity instanceof EntityArrow
-                        || entity == this.player && !this.player.isSpectator()) {
-                        this.disconnect("Attempting to attack an invalid entity");
-                        this.minecraftServer.warning("Player " + this.player.getName() + " tried to attack an invalid entity");
-                        return;
-                     }
-
-                     this.player.attack(entity);
                      if (itemInHand != null && itemInHand.count <= -1) {
                         this.player.updateInventory(this.player.activeContainer);
                      }
@@ -1834,7 +1873,8 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    @Override
    public void a(PacketPlayInKeepAlive packetplayinkeepalive) {
       if (packetplayinkeepalive.a() == this.i) {
-         this.player.ping = (this.player.ping * 3 + (int)(this.d() - this.j)) / 4;
+         this.pingTracker.onKeepAliveResponse(this.i, System.nanoTime());
+         this.player.ping = this.pingTracker.getPingMillis();
       }
    }
 

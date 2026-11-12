@@ -482,9 +482,20 @@ public abstract class MinecraftServer implements ICommandListener, IAsyncTaskHan
    }
 
    public void processPackets() {
+      int maximum = (Integer)BlazeConfig.maxPacketsPerDrain.getValue();
+      if (maximum < 1) {
+         maximum = 4096;
+      }
+
+      long deadline = System.nanoTime() + 2000000L;
+      int processed = 0;
       FutureTask<?> entry;
       while ((entry = this.j.poll()) != null) {
          SystemUtils.a(entry, LOGGER);
+         processed++;
+         if (processed >= maximum || System.nanoTime() >= deadline) {
+            break;
+         }
       }
    }
 

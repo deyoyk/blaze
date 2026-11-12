@@ -243,6 +243,7 @@ public class EntityArrow extends Entity implements IProjectile {
                   damagesource = DamageSource.arrow(this, this.shooter);
                }
 
+               damagesource.hitNanos = System.nanoTime();
                double victimMotX = entity.motX;
                double victimMotY = entity.motY;
                double victimMotZ = entity.motZ;
