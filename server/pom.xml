@@ -183,6 +183,10 @@
                     <addManifest>true</addManifest>
                     <generateTemporaryConfigurationFile>true</generateTemporaryConfigurationFile>
                     <proguardInclude>${project.basedir}/proguard.conf</proguardInclude>
+                    <options>
+                        <option>-classobfuscationdictionary</option>
+                        <option>${project.basedir}/proguard-dictionary.txt</option>
+                    </options>
                     <libs>
                         <lib>${java.home}/jmods/java.base.jmod</lib>
                         <lib>${java.home}/jmods/java.desktop.jmod</lib>
@@ -209,6 +213,10 @@
                                 <zip update="true" destfile="${project.build.directory}/${project.build.finalName}.jar">
                                     <zipfileset src="${project.build.directory}/${project.build.finalName}_proguard_base.jar" includes="META-INF/versions/**"/>
                                 </zip>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/${project.build.finalName}-shaded.jar" overwrite="true"/>
+                                <copy file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar" overwrite="true"/>
+                                <delete file="${project.build.directory}/${project.build.finalName}_proguard_base.jar"/>
+                                <delete file="${project.build.directory}/original-blaze.jar"/>
                             </target>
                         </configuration>
                     </execution>
