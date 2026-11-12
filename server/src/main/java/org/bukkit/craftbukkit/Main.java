@@ -161,7 +161,6 @@ public class Main {
 
             new Blaze();
             System.setProperty("library.jansi.version", "Blaze");
-            System.out.println("Loading libraries, please wait...");
             ConsoleBanner.print();
             MinecraftServer.main(options);
          } catch (Throwable var5) {
