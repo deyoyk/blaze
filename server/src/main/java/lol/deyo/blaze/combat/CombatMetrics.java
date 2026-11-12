@@ -8,6 +8,8 @@ import org.bukkit.command.CommandSender;
 
 public final class CombatMetrics {
    private static final Logger LOGGER = LogManager.getLogger("BlazeCombat");
+   private static long useEntityPackets;
+   private static long missingEntities;
    private static long attempts;
    private static long accepted;
    private static long rejectedReach;
@@ -21,6 +23,13 @@ public final class CombatMetrics {
    private static long lastPingNanos;
 
    private CombatMetrics() {
+   }
+
+   public static void recordUseEntity(boolean missing) {
+      useEntityPackets++;
+      if (missing) {
+         missingEntities++;
+      }
    }
 
    public static void record(EntityPlayer attacker, EntityPlayer victim, CombatResult result) {
@@ -73,7 +82,12 @@ public final class CombatMetrics {
    }
 
    public static void print(CommandSender sender) {
-      sender.sendMessage("[Blaze Combat] attempts=" + attempts + " accepted=" + accepted);
+      sender.sendMessage(
+         "[Blaze Combat] use-entity=" + useEntityPackets
+            + " missing-entity=" + missingEntities
+            + " attempts=" + attempts
+            + " accepted=" + accepted
+      );
       sender.sendMessage(
          "[Blaze Combat] rejected reach=" + rejectedReach
             + " los=" + rejectedLineOfSight
