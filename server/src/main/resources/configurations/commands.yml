@@ -14,3 +14,7 @@ command-block-overrides: []
 aliases:
     icanhasbukkit:
       - "version $1-"
+    gmc:
+      - "gamemode creative"
+    gms:
+      - "gamemode survival"
