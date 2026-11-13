@@ -16,6 +16,10 @@ Blaze Spigot is a 1.8.8 Spigot fork focused on performance and PvP.
 - Colorized console with a branded startup banner
 - Config GUI and utility commands (ping, TPS, clear lag, chunk unload, max players, `/gmc`, `/gms`)
 
+## Download
+
+Grab the latest jar from the [releases page](https://github.com/deyoyk/blaze/releases/latest).
+
 ## Build
 
 ```bash
