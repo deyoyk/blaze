@@ -5,13 +5,16 @@ Blaze Spigot is a 1.8.8 Spigot fork focused on performance and PvP.
 ## Features
 
 - Custom knockback profiles
-- Optimized chunk, block, and entity ticking
+- Latency-compensated combat with rewound hitboxes and timestamped hits
+- Optimized chunk, block, and entity ticking with palette-compressed sections and LZ4 regions
 - Async player, world, and NBT saving
 - Eigencraft and PandaWire redstone
 - Configurable world generator
 - AntiXray and activation range tuning
 - Ender pearl controls
-- Config GUI and commands for ping, TPS, clear lag, chunk unload, and max players
+- Bundled Spark profiler and SlimeWorldManager bridge
+- Colorized console with a branded startup banner
+- Config GUI and utility commands (ping, TPS, clear lag, chunk unload, max players, `/gmc`, `/gms`)
 
 ## Build
 
