@@ -1,0 +1,80 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-and-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B -ntp package
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: blaze-jar
+          path: server/target/blaze.jar
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download jar
+        uses: actions/download-artifact@v4
+        with:
+          name: blaze-jar
+
+      - name: Tag and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          latest="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n 1)"
+          if [ -z "$latest" ]; then
+            next=1
+          else
+            next=$(( ${latest#v} + 1 ))
+          fi
+
+          tag="v${next}"
+          asset="blaze-${tag}.jar"
+
+          echo "Latest tag: ${latest:-<none>} -> releasing ${tag}"
+
+          mv blaze.jar "$asset"
+
+          git tag "$tag"
+          git push origin "$tag"
+
+          gh release create "$tag" "$asset" \
+            --title "Blaze ${tag}" \
+            --generate-notes
