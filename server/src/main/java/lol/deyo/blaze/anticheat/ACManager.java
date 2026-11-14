@@ -16,6 +16,12 @@ import lol.deyo.blaze.anticheat.checks.VelocityCheck;
 import lol.deyo.blaze.anticheat.checks.HitboxCheck;
 import lol.deyo.blaze.anticheat.checks.BadPacketsCheck;
 import lol.deyo.blaze.anticheat.checks.PacketOrderCheck;
+import lol.deyo.blaze.anticheat.checks.FastPlaceCheck;
+import lol.deyo.blaze.anticheat.checks.FastBreakCheck;
+import lol.deyo.blaze.anticheat.checks.SafeWalkCheck;
+import lol.deyo.blaze.anticheat.checks.AutoBridgeCheck;
+import lol.deyo.blaze.anticheat.checks.JesusCheck;
+import lol.deyo.blaze.anticheat.checks.NoSlowCheck;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
@@ -51,6 +57,10 @@ public final class ACManager {
       data.checks.onDig(data, nowNanos);
    }
 
+   public void checksOnPlace(ACPlayer data, long nowNanos) {
+      data.checks.onPlace(data, nowNanos);
+   }
+
    private ACManager() {
    }
 
@@ -58,6 +68,7 @@ public final class ACManager {
       AnticheatConfig config = new AnticheatConfig(blaze);
       config.load();
       AnticheatConfigHolder.ENABLED = (Boolean)AnticheatConfig.enabled.getValue();
+      AnticheatConfigHolder.DEBUG = (Boolean)AnticheatConfig.debug.getValue();
       INSTANCE.store.init();
    }
 
@@ -82,6 +93,12 @@ public final class ACManager {
       data.checks.add(new HitboxCheck(INSTANCE));
       data.checks.add(new BadPacketsCheck(INSTANCE));
       data.checks.add(new PacketOrderCheck(INSTANCE));
+      data.checks.add(new FastPlaceCheck(INSTANCE));
+      data.checks.add(new FastBreakCheck(INSTANCE));
+      data.checks.add(new SafeWalkCheck(INSTANCE));
+      data.checks.add(new AutoBridgeCheck(INSTANCE));
+      data.checks.add(new JesusCheck(INSTANCE));
+      data.checks.add(new NoSlowCheck(INSTANCE));
       for (Check check : data.checks.all()) {
          data.violations.register(check, 0.4);
       }

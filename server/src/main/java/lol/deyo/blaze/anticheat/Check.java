@@ -30,6 +30,9 @@ public abstract class Check {
    public void onDig(ACPlayer data, long nowNanos) {
    }
 
+   public void onPlace(ACPlayer data, long nowNanos) {
+   }
+
    public void tick(ACPlayer data) {
    }
 

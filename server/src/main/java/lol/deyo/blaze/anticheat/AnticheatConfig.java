@@ -119,6 +119,33 @@ public class AnticheatConfig extends Config {
    public static final ConfigSetting<Double> timerMaxRate = new ConfigSetting<>(
       1.08, "checks.movement.timer", "Maximum ratio of movement packets to elapsed ticks."
    );
+   public static final ConfigSetting<Boolean> safeWalkEnabled = new ConfigSetting<>(
+      true, "checks.movement.safewalk", "Detects walking along block edges without sneaking."
+   );
+   public static final ConfigSetting<Integer> safeWalkMinEdgeTicks = new ConfigSetting<>(
+      5, "checks.movement.safewalk", "Consecutive edge-walk ticks required before flagging."
+   );
+   public static final ConfigSetting<Boolean> autoBridgeEnabled = new ConfigSetting<>(
+      true, "checks.movement.autobridge", "Detects block placement below feet while moving backward over air."
+   );
+   public static final ConfigSetting<Double> autoBridgeMaxPitch = new ConfigSetting<>(
+      60.0, "checks.movement.autobridge", "Minimum downward pitch for a place to count as bridging."
+   );
+   public static final ConfigSetting<Boolean> jesusEnabled = new ConfigSetting<>(
+      true, "checks.movement.jesus", "Detects walking on top of water at ground speed."
+   );
+   public static final ConfigSetting<Double> jesusMaxSpeed = new ConfigSetting<>(
+      0.18, "checks.movement.jesus", "Maximum horizontal speed per tick while on ground over water."
+   );
+   public static final ConfigSetting<Boolean> noSlowEnabled = new ConfigSetting<>(
+      true, "checks.movement.noslow", "Detects full-speed movement while eating or blocking."
+   );
+   public static final ConfigSetting<Double> noSlowMaxSpeed = new ConfigSetting<>(
+      0.16, "checks.movement.noslow", "Maximum horizontal speed per tick while using an item."
+   );
+   public static final ConfigSetting<Integer> noSlowReleaseGraceTicks = new ConfigSetting<>(
+      10, "checks.movement.noslow", "Ticks after releasing use item where speed is exempted."
+   );
 
    public static final ConfigSetting<Boolean> packetsEnabled = new ConfigSetting<>(true, "checks.packets");
    public static final ConfigSetting<Boolean> badPacketsEnabled = new ConfigSetting<>(
@@ -132,6 +159,20 @@ public class AnticheatConfig extends Config {
    );
    public static final ConfigSetting<Integer> packetRateLimit = new ConfigSetting<>(
       500, "checks.packets", "Packets allowed per second before flagging; -1 disables."
+   );
+
+   public static final ConfigSetting<Boolean> worldEnabled = new ConfigSetting<>(true, "checks.world");
+   public static final ConfigSetting<Boolean> fastPlaceEnabled = new ConfigSetting<>(
+      true, "checks.world.fastplace", "Minimum interval between block placements."
+   );
+   public static final ConfigSetting<Integer> fastPlaceMinIntervalMs = new ConfigSetting<>(
+      45, "checks.world.fastplace", "Minimum millis between block placements (vanilla allows ~4 per second)."
+   );
+   public static final ConfigSetting<Boolean> fastBreakEnabled = new ConfigSetting<>(
+      true, "checks.world.fastbreak", "Minimum dig time relative to vanilla block break duration."
+   );
+   public static final ConfigSetting<Double> fastBreakMinFraction = new ConfigSetting<>(
+      0.7, "checks.world.fastbreak", "Fraction of vanilla break duration the client must spend."
    );
 
    public AnticheatConfig(Blaze blaze) {

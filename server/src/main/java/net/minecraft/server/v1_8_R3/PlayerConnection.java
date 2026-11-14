@@ -740,6 +740,18 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    @Override
    public void a(PacketPlayInBlockPlace packetplayinblockplace) {
       PlayerConnectionUtils.ensureMainThread(packetplayinblockplace, this, this.player.u());
+      if (AnticheatConfigHolder.ENABLED) {
+         long acPlaceNanos = System.nanoTime();
+         lol.deyo.blaze.anticheat.ACPlayer acPlacer = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+         acPlacer.onBlockPlace(
+            packetplayinblockplace.a().getX(),
+            packetplayinblockplace.a().getY(),
+            packetplayinblockplace.a().getZ(),
+            packetplayinblockplace.getFace(),
+            acPlaceNanos
+         );
+         lol.deyo.blaze.anticheat.ACManager.INSTANCE.checksOnPlace(acPlacer, acPlaceNanos);
+      }
       WorldServer worldserver = this.minecraftServer.getWorldServer(this.player.dimension);
       boolean throttled = false;
       if (PaperSpigotConfig.interactLimitEnabled && this.lastPlace != -1L && packetplayinblockplace.timestamp - this.lastPlace < 30L && this.packets++ >= 4) {
@@ -1491,6 +1503,9 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                this.player.playerConnection.disconnect("You have died. Game over, man, it's game over!");
             } else if (this.player.getHealth() <= 0.0F) {
                this.player = this.minecraftServer.getPlayerList().moveToWorld(this.player, 0, false);
+               if (lol.deyo.blaze.configs.AnticheatConfigHolder.ENABLED) {
+                  lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player).onRespawn();
+               }
             }
             break;
          case 2:

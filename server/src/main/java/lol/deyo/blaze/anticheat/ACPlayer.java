@@ -20,6 +20,12 @@ public final class ACPlayer {
    private long receiveNanosLastSwing;
    private long receiveNanosLastDig;
    private long receiveNanosLastUse;
+   private long receiveNanosLastPlace;
+
+   private int lastPlaceX;
+   private int lastPlaceY;
+   private int lastPlaceZ;
+   private int lastPlaceFace;
 
    private double x;
    private double y;
@@ -56,7 +62,7 @@ public final class ACPlayer {
    private long timerPacketsSinceBalance;
    private long timerElapsedNanosSinceBalance;
 
-   private final Deque<Long> clickIntervals = new ArrayDeque<>(24);
+   private final Deque<Long> clickIntervals = new ArrayDeque<>(40);
    private int clicksThisSecond;
    private long secondWindowStart;
 
@@ -82,6 +88,18 @@ public final class ACPlayer {
    private double victimY;
    private double victimZ;
    private boolean hasVictim;
+
+   private long lastDigStartNanos;
+   private long lastDigStopNanos;
+   private int lastDigStartX;
+   private int lastDigStartY;
+   private int lastDigStartZ;
+   private int lastDigX;
+   private int lastDigY;
+   private int lastDigZ;
+   private long usingItemReleaseNanos;
+   private final long[] placeIntervalNanos = new long[16];
+   private int placeIntervals;
 
    public ACPlayer(EntityPlayer player) {
       this.player = player;
@@ -163,7 +181,7 @@ public final class ACPlayer {
       if (last > 0L) {
          long interval = nowNanos - last;
          if (interval > 0L && interval < 1000000000L) {
-            if (this.clickIntervals.size() >= 20) {
+            if (this.clickIntervals.size() >= 40) {
                this.clickIntervals.pollFirst();
             }
             this.clickIntervals.addLast(interval);
@@ -181,19 +199,124 @@ public final class ACPlayer {
    public void onBlockDig(PacketPlayInBlockDig packet, long nowNanos) {
       this.receiveNanos = nowNanos;
       this.receiveNanosLastDig = nowNanos;
+      this.lastDigX = packet.a().getX();
+      this.lastDigY = packet.a().getY();
+      this.lastDigZ = packet.a().getZ();
       switch (packet.c()) {
          case START_DESTROY_BLOCK:
             this.digging = true;
+            this.lastDigStartNanos = nowNanos;
+            this.lastDigStartX = packet.a().getX();
+            this.lastDigStartY = packet.a().getY();
+            this.lastDigStartZ = packet.a().getZ();
             break;
          case ABORT_DESTROY_BLOCK:
          case STOP_DESTROY_BLOCK:
             this.digging = false;
+            this.lastDigStopNanos = nowNanos;
             break;
          case RELEASE_USE_ITEM:
             this.eating = false;
             this.blocking = false;
+            this.usingItemReleaseNanos = nowNanos;
             break;
       }
+   }
+
+   public void onBlockPlace(int x, int y, int z, int face, long nowNanos) {
+      this.receiveNanos = nowNanos;
+      this.receiveNanosLastPlace = nowNanos;
+      this.lastPlaceX = x;
+      this.lastPlaceY = y;
+      this.lastPlaceZ = z;
+      this.lastPlaceFace = face;
+      if (this.placeIntervalNanos.length > 0) {
+         if (this.placeIntervals >= this.placeIntervalNanos.length) {
+            this.placeIntervalNanos[this.placeIntervals % this.placeIntervalNanos.length] = nowNanos;
+         } else {
+            this.placeIntervalNanos[this.placeIntervals] = nowNanos;
+         }
+         this.placeIntervals++;
+      }
+   }
+
+   public long getReceiveNanosLastPlace() {
+      return this.receiveNanosLastPlace;
+   }
+
+   public int getLastPlaceX() {
+      return this.lastPlaceX;
+   }
+
+   public int getLastPlaceY() {
+      return this.lastPlaceY;
+   }
+
+   public int getLastPlaceZ() {
+      return this.lastPlaceZ;
+   }
+
+   public int getLastPlaceFace() {
+      return this.lastPlaceFace;
+   }
+
+   public long getLastDigStartNanos() {
+      return this.lastDigStartNanos;
+   }
+
+   public int getLastDigStartX() {
+      return this.lastDigStartX;
+   }
+
+   public int getLastDigStartY() {
+      return this.lastDigStartY;
+   }
+
+   public int getLastDigStartZ() {
+      return this.lastDigStartZ;
+   }
+
+   public long getLastDigStopNanos() {
+      return this.lastDigStopNanos;
+   }
+
+   public int getLastDigX() {
+      return this.lastDigX;
+   }
+
+   public int getLastDigY() {
+      return this.lastDigY;
+   }
+
+   public int getLastDigZ() {
+      return this.lastDigZ;
+   }
+
+   public long getUsingItemReleaseNanos() {
+      return this.usingItemReleaseNanos;
+   }
+
+   public int getPlaceCount() {
+      return this.placeIntervals;
+   }
+
+   public long getPlaceNanosAt(int indexFromEnd) {
+      int size = this.placeIntervals;
+      int idx = size - indexFromEnd;
+      if (idx < 0) {
+         return -1L;
+      }
+      int len = this.placeIntervalNanos.length;
+      if (len == 0) {
+         return -1L;
+      }
+      int slot;
+      if (size <= len) {
+         slot = idx;
+      } else {
+         slot = idx % len;
+      }
+      return this.placeIntervalNanos[slot];
    }
 
    public void tick() {
@@ -245,11 +368,36 @@ public final class ACPlayer {
       this.deltaXZ = 0.0;
    }
 
+   public boolean isExpectingKnockback() {
+      return this.expectedKnockbackTicksLeft > 0;
+   }
+
    public void updateSafePosition() {
       this.safeX = this.x;
       this.safeY = this.y;
       this.safeZ = this.z;
       this.hasSafePosition = true;
+   }
+
+   public void onRespawn() {
+      this.x = this.player.locX;
+      this.y = this.player.locY;
+      this.z = this.player.locZ;
+      this.lastX = this.x;
+      this.lastY = this.y;
+      this.lastZ = this.z;
+      this.yaw = this.player.yaw;
+      this.pitch = this.player.pitch;
+      this.deltaX = 0.0;
+      this.deltaY = 0.0;
+      this.deltaZ = 0.0;
+      this.deltaXZ = 0.0;
+      this.onGround = true;
+      this.lastOnGround = true;
+      this.teleportedSinceLastMove = true;
+      this.expectedKnockbackTicksLeft = 0;
+      this.updateSafePosition();
+      this.resetTimerBalance();
    }
 
    public long getReceiveNanos() {

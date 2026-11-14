@@ -50,6 +50,15 @@ public final class CheckContainer {
       }
    }
 
+   public void onPlace(ACPlayer data, long nowNanos) {
+      for (int i = 0; i < this.checks.size(); i++) {
+         Check check = this.checks.get(i);
+         if (check.enabled()) {
+            check.onPlace(data, nowNanos);
+         }
+      }
+   }
+
    public void tick(ACPlayer data) {
       for (int i = 0; i < this.checks.size(); i++) {
          Check check = this.checks.get(i);
