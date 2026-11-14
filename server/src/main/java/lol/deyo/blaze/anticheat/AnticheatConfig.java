@@ -55,7 +55,7 @@ public class AnticheatConfig extends Config {
       true, "checks.combat.killaura", "Post-attack swing ordering and impossible aim delta checks."
    );
    public static final ConfigSetting<Integer> killauraMaxPostNanos = new ConfigSetting<>(
-      85000000, "checks.combat.killaura", "Max nanos between a flying packet and the attack swing that follows it."
+      10000000, "checks.combat.killaura", "Max nanos after a flying packet in which an attack looks like packet-order manipulation."
    );
    public static final ConfigSetting<Double> killauraMaxAimDelta = new ConfigSetting<>(
       40.0, "checks.combat.killaura", "Max combined yaw+pitch delta while attacking."

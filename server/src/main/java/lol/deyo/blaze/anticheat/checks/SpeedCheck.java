@@ -48,6 +48,18 @@ public class SpeedCheck extends Check {
 
       double maxSpeed = this.maxSpeed(data);
       double allowed = maxSpeed * (Double)AnticheatConfig.speedMaxMultiplier.getValue() + 0.03;
+      if (!data.isOnGround()) {
+         if (data.isClientSprinting() || player.isSprinting()) {
+            allowed += 0.25;
+         }
+
+         if (data.isOnGround() != data.wasOnGround() && data.wasOnGround()) {
+            allowed += 0.15;
+         }
+      } else if (!data.wasOnGround()) {
+         allowed += 0.15;
+      }
+
       if (deltaXZ > allowed) {
          if (this.flag(data, Math.min(2.0, 0.5 + (deltaXZ - allowed) * 5.0), String.format("d=%.3f max=%.3f", deltaXZ, allowed))) {
             this.setback(data);

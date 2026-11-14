@@ -8,6 +8,7 @@ import net.minecraft.server.v1_8_R3.EntityPlayer;
 
 public class NoFallCheck extends Check {
    private double fallDistance;
+   private int landingGrace;
 
    public NoFallCheck(ACManager manager) {
       super(manager, "NoFall");
@@ -22,7 +23,17 @@ public class NoFallCheck extends Check {
    @Override
    public void onFlying(ACPlayer data, long nowNanos) {
       EntityPlayer player = data.player;
-      if (player.vehicle != null || player.inWater || data.hasTeleportedSinceLastMove() || player.playerConnection.hasPendingTeleport()) {
+      if (player.vehicle != null
+         || player.inWater
+         || data.hasTeleportedSinceLastMove()
+         || player.playerConnection.hasPendingTeleport()) {
+         this.fallDistance = 0.0;
+         this.landingGrace = 0;
+         return;
+      }
+
+      if ((Boolean)AnticheatConfig.setbackOnViolation.getValue() && this.landingGrace > 0) {
+         this.landingGrace--;
          this.fallDistance = 0.0;
          return;
       }
@@ -35,8 +46,10 @@ public class NoFallCheck extends Check {
       }
 
       if (data.isOnGround() && this.fallDistance > (Double)AnticheatConfig.nofallMinFallDistance.getValue()) {
-         if (player.noDamageTicks <= 0) {
-            this.flag(data, 1.0, String.format("fall=%.2f no-damage", this.fallDistance));
+         if (player.fallDistance <= 0.5f && player.noDamageTicks <= 0) {
+            if (this.flag(data, 1.0, String.format("fall=%.2f no-damage", this.fallDistance))) {
+               this.landingGrace = 10;
+            }
          }
 
          this.fallDistance = 0.0;

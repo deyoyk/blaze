@@ -21,8 +21,11 @@ public class KillauraCheck extends Check {
       long flying = data.getReceiveNanosLastFlying();
       if (flying > 0L) {
          long sinceFlying = nowNanos - flying;
-         if (sinceFlying >= 0L && sinceFlying < (Integer)AnticheatConfig.killauraMaxPostNanos.getValue()) {
+         int threshold = (Integer)AnticheatConfig.killauraMaxPostNanos.getValue();
+         if (sinceFlying >= 0L && sinceFlying < threshold) {
             this.flag(data, 0.5, String.format("post=%.1fms", sinceFlying / 1000000.0));
+         } else if (sinceFlying > 1000000000L) {
+            this.flag(data, 0.5, String.format("stale=%.1fms", sinceFlying / 1000000.0));
          }
       }
 
