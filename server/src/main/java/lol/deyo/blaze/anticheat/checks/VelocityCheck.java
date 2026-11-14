@@ -2,8 +2,9 @@ package lol.deyo.blaze.anticheat.checks;
 
 import lol.deyo.blaze.anticheat.ACManager;
 import lol.deyo.blaze.anticheat.ACPlayer;
-import lol.deyo.blaze.anticheat.Check;
 import lol.deyo.blaze.anticheat.AnticheatConfig;
+import lol.deyo.blaze.anticheat.Check;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
 
 public class VelocityCheck extends Check {
    public VelocityCheck(ACManager manager) {
@@ -19,6 +20,16 @@ public class VelocityCheck extends Check {
    @Override
    public void onFlying(ACPlayer data, long nowNanos) {
       if (data.getKbSamples() < 3) {
+         return;
+      }
+
+      EntityPlayer player = data.player;
+      if (player.positionChanged
+         || player.inWater
+         || player.k_()
+         || player.vehicle != null
+         || player.ticksLived < 60) {
+         data.resetKbSamples();
          return;
       }
 
