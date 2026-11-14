@@ -18,7 +18,11 @@ Blaze Spigot is a 1.8.8 Spigot fork focused on performance and PvP.
 
 ## Download
 
-Grab the latest jar from the [releases page](https://github.com/deyoyk/blaze/releases/latest).
+Download the latest jar from the [releases page](https://github.com/deyoyk/blaze/releases/latest) or directly: [blaze.jar](https://github.com/deyoyk/blaze/releases/latest/download/blaze.jar).
+
+## Updates
+
+The server checks GitHub on startup and, when a newer release exists, downloads it and restarts once to apply it. Configure it in `blaze/updater.yml`.
 
 ## Build
 
