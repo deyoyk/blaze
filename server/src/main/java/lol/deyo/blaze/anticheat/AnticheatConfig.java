@@ -54,6 +54,15 @@ public class AnticheatConfig extends Config {
    public static final ConfigSetting<Boolean> killauraEnabled = new ConfigSetting<>(
       true, "checks.combat.killaura", "Post-attack swing ordering and impossible aim delta checks."
    );
+   public static final ConfigSetting<Boolean> reachEnabled = new ConfigSetting<>(
+      true, "checks.combat.reach", "Eye-to-victim attack distance check with ping-scaled allowance."
+   );
+   public static final ConfigSetting<Double> reachMaxDistance = new ConfigSetting<>(
+      3.5, "checks.combat.reach", "Maximum eye-to-victim attack distance before flagging."
+   );
+   public static final ConfigSetting<Boolean> criticalsEnabled = new ConfigSetting<>(
+      true, "checks.combat.criticals", "Detects forced-critical attacks (airborne with zero vertical motion)."
+   );
    public static final ConfigSetting<Integer> killauraMaxPostNanos = new ConfigSetting<>(
       10000000, "checks.combat.killaura", "Max nanos after a flying packet in which an attack looks like packet-order manipulation."
    );
