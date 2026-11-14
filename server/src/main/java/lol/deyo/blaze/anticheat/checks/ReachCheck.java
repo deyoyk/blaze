@@ -8,6 +8,7 @@ import net.minecraft.server.v1_8_R3.EntityPlayer;
 
 public class ReachCheck extends Check {
    private static final double MAX_SURVIVABLE_REACH = 4.2;
+   private static final double HITBOX_MARGIN = 0.1;
 
    public ReachCheck(ACManager manager) {
       super(manager, "Reach");
@@ -31,16 +32,33 @@ public class ReachCheck extends Check {
       }
 
       double ex = player.locX;
-      double ey = player.locY + 1.62;
+      double ey = player.locY + player.getHeadHeight();
       double ez = player.locZ;
-      double dx = data.getVictimX() - ex;
-      double dy = data.getVictimY() - ey;
-      double dz = data.getVictimZ() - ez;
-      double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      double vx = data.getVictimX();
+      double vy = data.getVictimY();
+      double vz = data.getVictimZ();
+      double dx = vx - ex;
+      double dy = vy - ey;
+      double dz = vz - ez;
+      double centerDist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      double lookX = -Math.sin(Math.toRadians(player.yaw)) * Math.cos(Math.toRadians(player.pitch));
+      double lookY = -Math.sin(Math.toRadians(player.pitch));
+      double lookZ = Math.cos(Math.toRadians(player.yaw)) * Math.cos(Math.toRadians(player.pitch));
+      double half = 0.4 + HITBOX_MARGIN;
+      double rayDist = ReachMath.minAttackDistance(
+         ex, ey, ez, lookX, lookY, lookZ,
+         vx - half, vy - half, vz - half, vx + half, vy + half, vz + half,
+         centerDist
+      );
+      double boxDist = ReachMath.pointBoxDistance(
+         ex, ey, ez,
+         vx - half, vy - half, vz - half, vx + half, vy + half, vz + half
+      );
+      double dist = Math.min(rayDist, boxDist);
       double allowed = allowedReach((Double)AnticheatConfig.reachMaxDistance.getValue(), data.getPingMillis());
 
-      if (dist > MAX_SURVIVABLE_REACH) {
-         if (this.flag(data, 4.0, String.format("dist=%.2f hard", dist))) {
+      if (centerDist > MAX_SURVIVABLE_REACH) {
+         if (this.flag(data, 4.0, String.format("dist=%.2f hard", centerDist))) {
             this.setback(data);
          }
       } else if (dist > allowed) {
