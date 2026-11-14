@@ -65,7 +65,11 @@ public final class AutoUpdater {
          }
 
          if (!this.checker.isNewer(latest)) {
-            LOGGER.info("[Updater] Running the latest release ({})", latest.getTag());
+            if ("dev".equals(this.currentVersion)) {
+               LOGGER.warn("[Updater] This is a development build (no release version); release {} is ignored. " + "Build with a version tag or delete the local jar to update.", latest.getTag());
+            } else {
+               LOGGER.info("[Updater] Running the latest release ({})", latest.getTag());
+            }
             this.pendingFile = null;
             this.checker.cleanup(null);
             this.clearAttempt();
@@ -232,7 +236,11 @@ public final class AutoUpdater {
 
    private static String currentVersion() {
       String version = AutoUpdater.class.getPackage().getImplementationVersion();
-      return version == null ? "unknown" : version;
+      if (version == null || Versions.parse(version) < 0) {
+         return "dev";
+      }
+
+      return version;
    }
 
    private static long currentProcessId() {
