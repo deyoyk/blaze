@@ -11,6 +11,7 @@ import net.minecraft.server.v1_8_R3.EntityPlayer;
 
 public class SafeWalkCheck extends Check {
    private int edgeTicks;
+   private int streakFlags;
 
    public SafeWalkCheck(ACManager manager) {
       super(manager, "SafeWalk");
@@ -32,29 +33,35 @@ public class SafeWalkCheck extends Check {
          || player.ticksLived < 60
          || player.playerConnection.hasPendingTeleport()) {
          this.edgeTicks = 0;
+         this.streakFlags = 0;
          return;
       }
 
       if (!data.isOnGround()) {
          this.edgeTicks = 0;
+         this.streakFlags = 0;
          return;
       }
 
       double horizontal = data.getDeltaXZ();
       if (horizontal < 0.1) {
          this.edgeTicks = 0;
+         this.streakFlags = 0;
          return;
       }
 
       if (this.hasGroundUnderFootprint(player)) {
          this.edgeTicks = 0;
+         this.streakFlags = 0;
          return;
       }
 
       this.edgeTicks++;
       int required = (Integer)AnticheatConfig.safeWalkMinEdgeTicks.getValue();
       if (this.edgeTicks >= required) {
-         this.flag(data, 1.0, "edge=" + this.edgeTicks + " h=" + String.format("%.3f", horizontal));
+         this.streakFlags++;
+         double weight = this.streakFlags >= 4 ? 2.5 : 1.0;
+         this.flag(data, weight, "edge=" + this.edgeTicks + " h=" + String.format("%.3f", horizontal));
          this.edgeTicks = 0;
       }
    }

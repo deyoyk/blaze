@@ -13,6 +13,7 @@ public class AutoBridgeCheck extends Check {
    private static final long QUALIFYING_WINDOW_NANOS = 2000000000L;
 
    private int bridgingPlaces;
+   private int streakFlags;
    private long lastQualifyingNanos;
 
    public AutoBridgeCheck(ACManager manager) {
@@ -82,7 +83,9 @@ public class AutoBridgeCheck extends Check {
       this.lastQualifyingNanos = nowNanos;
       this.bridgingPlaces++;
       if (this.bridgingPlaces >= 6) {
-         this.flag(data, 1.0, "places=" + this.bridgingPlaces + " pitch=" + String.format("%.0f", pitch));
+         this.streakFlags++;
+         double weight = this.streakFlags >= 2 ? 2.5 : 1.0;
+         this.flag(data, weight, "places=" + this.bridgingPlaces + " pitch=" + String.format("%.0f", pitch));
          this.bridgingPlaces = 0;
       }
    }
@@ -91,8 +94,10 @@ public class AutoBridgeCheck extends Check {
    public void onFlying(ACPlayer data, long nowNanos) {
       if (data.getDeltaXZ() < 0.02) {
          this.bridgingPlaces = 0;
+         this.streakFlags = 0;
       } else if (this.lastQualifyingNanos > 0L && nowNanos - this.lastQualifyingNanos > QUALIFYING_WINDOW_NANOS) {
          this.bridgingPlaces = 0;
+         this.streakFlags = 0;
       }
    }
 }

@@ -58,7 +58,6 @@ public class PhaseCheck extends Check {
          || nowNanos - data.getReceiveNanosLastDig() < BLOCK_CHANGE_GRACE_NANOS) {
          return;
       }
-
       double lastX = data.getLastX();
       double lastY = data.getLastY();
       double lastZ = data.getLastZ();
@@ -78,8 +77,6 @@ public class PhaseCheck extends Check {
       }
 
       if (solid != null && this.findSolidOverlap(player, lastX, lastY, lastZ) == null) {
-         // Persistence buffer: require the overlap on two consecutive flying packets so
-         // single-tick transients (piston pushes, chunk-load lag) never flag.
          this.pendingOverlap++;
          if (this.pendingOverlap >= 2) {
             this.pendingOverlap = 0;

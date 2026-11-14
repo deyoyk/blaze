@@ -24,7 +24,7 @@ public class AutoClickerCheck extends Check {
       int cps = data.getClicksThisSecond();
       int maxCps = (Integer)AnticheatConfig.autoclickerMaxCps.getValue();
       if (cps > maxCps) {
-         this.flag(data, 1.0, "cps=" + cps);
+         this.flag(data, cps >= maxCps * 2 ? 3.0 : 1.0, "cps=" + cps);
       }
 
       Deque<Long> intervals = data.getClickIntervals();
