@@ -27,6 +27,12 @@ public final class ViolationStore {
       this.mysql = "MYSQL".equalsIgnoreCase((String)AnticheatConfig.storageType.getValue());
       try {
          if (this.mysql) {
+            try {
+               Class.forName("com.mysql.cj.jdbc.Driver");
+               Class.forName("org.gjt.mm.mysql.Driver");
+            } catch (ClassNotFoundException cnfe) {
+               throw new SQLException("MySQL driver not present", cnfe);
+            }
             String host = (String)AnticheatConfig.mysqlHost.getValue();
             int port = (Integer)AnticheatConfig.mysqlPort.getValue();
             String db = (String)AnticheatConfig.mysqlDatabase.getValue();
@@ -39,6 +45,12 @@ public final class ViolationStore {
                pass
             );
          } else {
+            try {
+               Class.forName("org.sqlite.JDBC");
+            } catch (ClassNotFoundException cnfe) {
+               throw new SQLException("SQLite driver not present", cnfe);
+            }
+
             File dir = new File(ConfigHelper.anticheatDirectory());
             if (!dir.exists()) {
                dir.mkdirs();
@@ -73,30 +85,6 @@ public final class ViolationStore {
    }
 
    public void loadViolations(UUID uuid, ViolationTracker tracker) {
-      if (this.connection == null) {
-         return;
-      }
-
-      try (PreparedStatement ps = this.connection.prepareStatement(
-         "SELECT check_name, vl FROM ac_violations WHERE uuid = ? AND created_at > ?"
-      )) {
-         ps.setString(1, uuid.toString());
-         ps.setLong(2, System.currentTimeMillis() - 86400000L);
-         try (ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-               String checkName = rs.getString(1);
-               double vl = rs.getDouble(2);
-               for (int i = 0; i < tracker.size(); i++) {
-                  if (tracker.nameAt(i).equals(checkName)) {
-                     tracker.penalize(checkName, vl, System.nanoTime());
-                     break;
-                  }
-               }
-            }
-         }
-      } catch (SQLException e) {
-         MinecraftServer.LOGGER.error("Blaze AC load violations failed", e);
-      }
    }
 
    public void tick(AsyncExecutor executor) {
