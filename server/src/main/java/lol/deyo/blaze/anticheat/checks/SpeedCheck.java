@@ -60,6 +60,10 @@ public class SpeedCheck extends Check {
          allowed += 0.15;
       }
 
+      if (data.isExpectingKnockback()) {
+         allowed += 1.0;
+      }
+
       if (deltaXZ > allowed) {
          if (this.flag(data, Math.min(2.0, 0.5 + (deltaXZ - allowed) * 5.0), String.format("d=%.3f max=%.3f", deltaXZ, allowed))) {
             this.setback(data);
