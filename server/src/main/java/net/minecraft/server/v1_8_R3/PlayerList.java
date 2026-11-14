@@ -303,6 +303,9 @@ public abstract class PlayerList {
 
       ChunkIOExecutor.adjustPoolSize(this.getPlayerCount());
       Blaze.getInstance().getMenuManager().handleJoin(playerJoinEvent);
+      if (lol.deyo.blaze.configs.AnticheatConfigHolder.ENABLED) {
+         lol.deyo.blaze.anticheat.ACManager.INSTANCE.handleJoin(entityPlayer);
+      }
       PacketPlayOutPlayerInfo packet = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, entityPlayer);
       CraftPlayer player = entityPlayer.getBukkitEntity();
       List<EntityPlayer> bulkSend = new ArrayList<>();
@@ -340,6 +343,9 @@ public abstract class PlayerList {
       entityplayer.lastActivity = System.currentTimeMillis();
       entityplayer.getBukkitEntity().disconnect(playerQuitEvent.getQuitMessage());
       Blaze.getInstance().getKnockbackManager().getEditing().remove(entityplayer.getUniqueID());
+      if (lol.deyo.blaze.configs.AnticheatConfigHolder.ENABLED) {
+         lol.deyo.blaze.anticheat.ACManager.INSTANCE.handleQuit(entityplayer);
+      }
       this.savePlayerFile(entityplayer);
       WorldServer worldserver = entityplayer.u();
       if (entityplayer.vehicle != null && !(entityplayer.vehicle instanceof EntityPlayer)) {

@@ -15,6 +15,7 @@ import lol.deyo.blaze.combat.PingTracker;
 import lol.deyo.blaze.combat.PlayerPositionHistory;
 import lol.deyo.blaze.configs.BlazeConfig;
 import lol.deyo.blaze.configs.LanguageConfig;
+import lol.deyo.blaze.configs.AnticheatConfigHolder;
 import lol.deyo.blaze.configs.extra.ConfigEdit;
 import lol.deyo.blaze.knockback.extra.KnockbackEdit;
 import lol.deyo.blaze.utils.QueuedTeleport;
@@ -160,8 +161,12 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    private double lastY;
    private double lastZ;
    private final Queue<QueuedTeleport> teleportQueue = new ArrayDeque<>();
+   public boolean hasPendingTeleport() {
+      return !this.teleportQueue.isEmpty();
+   }
    public int lastDropTick = MinecraftServer.currentTick;
    private int dropCount = 0;
+   public boolean anticheatSkipFlying;
    private double lastPosX = Double.MAX_VALUE;
    private double lastPosY = Double.MAX_VALUE;
    private double lastPosZ = Double.MAX_VALUE;
@@ -300,6 +305,13 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
             this.player.l();
          } else if (!this.player.viewingCredits) {
             if (!this.player.dead) {
+               if (AnticheatConfigHolder.ENABLED) {
+                  long acNanos = System.nanoTime();
+                  lol.deyo.blaze.anticheat.ACPlayer acPlayer = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+                  acPlayer.onFlying(packet, acNanos);
+                  lol.deyo.blaze.anticheat.ACManager.INSTANCE.checksOnFlying(acPlayer, acNanos);
+               }
+
                WorldServer worldserver = this.minecraftServer.getWorldServer(this.player.dimension);
                CraftPlayer craftPlayer = this.getPlayer();
                if (!this.hasMoved) {
@@ -629,6 +641,13 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    public void a(PacketPlayInBlockDig packetplayinblockdig) {
       PlayerConnectionUtils.ensureMainThread(packetplayinblockdig, this, this.player.u());
       if (!this.player.dead) {
+         if (AnticheatConfigHolder.ENABLED) {
+            long acDigNanos = System.nanoTime();
+            lol.deyo.blaze.anticheat.ACPlayer acDigger = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+            acDigger.onBlockDig(packetplayinblockdig, acDigNanos);
+            lol.deyo.blaze.anticheat.ACManager.INSTANCE.checksOnDig(acDigger, acDigNanos);
+         }
+
          this.player.resetIdleTimer();
          switch (PlayerConnection.SyntheticClass_1.a[packetplayinblockdig.c().ordinal()]) {
             case 1:
@@ -879,6 +898,14 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 
    public void sendPacket(Packet<?> packet) {
       if (packet != null && !this.processedDisconnect) {
+         if (AnticheatConfigHolder.ENABLED && packet instanceof PacketPlayOutEntityVelocity) {
+            PacketPlayOutEntityVelocity velocityPacket = (PacketPlayOutEntityVelocity)packet;
+            if (velocityPacket.getEntityId() == this.player.getId()) {
+               lol.deyo.blaze.anticheat.ACPlayer acReceiver = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+               acReceiver.onServerVelocity(velocityPacket.getVelocityX(), velocityPacket.getVelocityY(), velocityPacket.getVelocityZ());
+            }
+         }
+
          if (packet instanceof PacketPlayOutChat) {
             EntityHuman.EnumChatVisibility vis = this.player.getChatFlags();
             if (vis == EntityHuman.EnumChatVisibility.HIDDEN || vis == EntityHuman.EnumChatVisibility.SYSTEM && !((PacketPlayOutChat)packet).b()) {
@@ -1209,6 +1236,13 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    public void a(PacketPlayInArmAnimation packetplayinarmanimation) {
       if (!this.player.dead) {
          PlayerConnectionUtils.ensureMainThread(packetplayinarmanimation, this, this.player.u());
+         if (AnticheatConfigHolder.ENABLED) {
+            long acSwingNanos = System.nanoTime();
+            lol.deyo.blaze.anticheat.ACPlayer acSwinger = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+            acSwinger.onArmAnimation(packetplayinarmanimation, acSwingNanos);
+            lol.deyo.blaze.anticheat.ACManager.INSTANCE.checksOnSwing(acSwinger, acSwingNanos);
+         }
+
          this.player.resetIdleTimer();
          this.player.checkBackpacking();
          float f1 = this.player.pitch;
@@ -1268,6 +1302,26 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
          }
 
          this.player.resetIdleTimer();
+         if (AnticheatConfigHolder.ENABLED) {
+            lol.deyo.blaze.anticheat.ACPlayer acActor = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+            switch (PlayerConnection.SyntheticClass_1.b[packetplayinentityaction.b().ordinal()]) {
+               case 1:
+                  acActor.setClientSneaking(true);
+                  break;
+               case 2:
+                  acActor.setClientSneaking(false);
+                  break;
+               case 3:
+                  acActor.setClientSprinting(true);
+                  break;
+               case 4:
+                  acActor.setClientSprinting(false);
+                  break;
+               default:
+                  break;
+            }
+         }
+
          switch (PlayerConnection.SyntheticClass_1.b[packetplayinentityaction.b().ordinal()]) {
             case 1:
                this.player.checkBackpacking();
@@ -1329,6 +1383,14 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                   }
 
                   ItemStack attackItem = this.player.inventory.getItemInHand();
+                  if (AnticheatConfigHolder.ENABLED) {
+                     long acAttackNanos = System.nanoTime();
+                     lol.deyo.blaze.anticheat.ACPlayer acAttacker = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+                     acAttacker.onUseEntity(packetplayinuseentity, acAttackNanos, true);
+                     acAttacker.recordAttackVictim(entity.locX, entity.getBoundingBox().b + entity.length * 0.5, entity.locZ);
+                     lol.deyo.blaze.anticheat.ACManager.INSTANCE.checksOnAttack(acAttacker, acAttackNanos);
+                  }
+
                   CombatResult combat = null;
                   if ((Boolean)BlazeConfig.combatLagCompensation.getValue()) {
                      combat = CombatValidator.validate(this.player, entity, packetplayinuseentity);

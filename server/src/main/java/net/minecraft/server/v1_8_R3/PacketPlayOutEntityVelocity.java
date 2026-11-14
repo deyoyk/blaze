@@ -66,4 +66,20 @@ public class PacketPlayOutEntityVelocity implements Packet<PacketListenerPlayOut
    public void a(PacketListenerPlayOut var1) {
       var1.a(this);
    }
+
+   public int getEntityId() {
+      return this.a;
+   }
+
+   public double getVelocityX() {
+      return this.b / 8000.0;
+   }
+
+   public double getVelocityY() {
+      return this.c / 8000.0;
+   }
+
+   public double getVelocityZ() {
+      return this.d / 8000.0;
+   }
 }

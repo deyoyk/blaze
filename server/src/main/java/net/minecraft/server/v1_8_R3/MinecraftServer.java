@@ -15,6 +15,7 @@ import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import lol.deyo.blaze.Blaze;
 import lol.deyo.blaze.configs.BlazeConfig;
+import lol.deyo.blaze.configs.AnticheatConfigHolder;
 import lol.deyo.blaze.tickloop.BlazeTickloop;
 import io.netty.util.ResourceLeakDetector;
 import java.io.File;
@@ -575,6 +576,9 @@ public abstract class MinecraftServer implements ICommandListener, IAsyncTaskHan
       this.server.getScheduler().mainThreadHeartbeat(this.ticks);
       ChunkIOExecutor.tick();
       Blaze.getInstance().getMenuManager().tick();
+      if (AnticheatConfigHolder.ENABLED) {
+         lol.deyo.blaze.anticheat.ACManager.INSTANCE.tick();
+      }
 
       for (WorldServer world : this.worlds) {
          boolean doDaylight = world.getGameRules().getBoolean("doDaylightCycle");
