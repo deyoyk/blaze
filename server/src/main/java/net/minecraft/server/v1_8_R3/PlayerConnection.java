@@ -161,6 +161,7 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
    private double lastY;
    private double lastZ;
    private final Queue<QueuedTeleport> teleportQueue = new ArrayDeque<>();
+   private int teleportQueuedTick;
    public boolean hasPendingTeleport() {
       return !this.teleportQueue.isEmpty();
    }
@@ -283,6 +284,11 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
       } else {
          this.player.processItemQueue(packet);
          QueuedTeleport peek = this.teleportQueue.peek();
+         if (peek != null && MinecraftServer.currentTick - this.teleportQueuedTick > 40) {
+            peek = null;
+            this.teleportQueue.remove();
+         }
+
          if (peek != null) {
             if (packet.hasPos && packet.hasLook) {
                boolean correct = peek.isRelative() || peek.getX() == packet.x && Math.abs(peek.getY() - packet.y) < 0.001 && peek.getZ() == packet.z;
@@ -309,6 +315,10 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                   long acNanos = System.nanoTime();
                   lol.deyo.blaze.anticheat.ACPlayer acPlayer = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
                   acPlayer.onFlying(packet, acNanos);
+                  if (acPlayer.hasTeleportedSinceLastMove()) {
+                     acPlayer.updateSafePosition();
+                  }
+
                   lol.deyo.blaze.anticheat.ACManager.INSTANCE.checksOnFlying(acPlayer, acNanos);
                }
 
@@ -923,6 +933,10 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
                || positionUpdate.getFlags().contains(PacketPlayOutPosition.EnumPlayerTeleportFlags.Z);
             AsyncCatcher.catchOp("Teleportation should never happen async");
             this.teleportQueue.add(new QueuedTeleport(positionUpdate.getX(), positionUpdate.getY(), positionUpdate.getZ(), relative));
+            this.teleportQueuedTick = MinecraftServer.currentTick;
+            if (AnticheatConfigHolder.ENABLED) {
+               lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player).markTeleported();
+            }
          }
 
          if (this.shouldSend(packet)) {
@@ -1304,17 +1318,17 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
          this.player.resetIdleTimer();
          if (AnticheatConfigHolder.ENABLED) {
             lol.deyo.blaze.anticheat.ACPlayer acActor = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
-            switch (PlayerConnection.SyntheticClass_1.b[packetplayinentityaction.b().ordinal()]) {
-               case 1:
+            switch (packetplayinentityaction.b()) {
+               case START_SNEAKING:
                   acActor.setClientSneaking(true);
                   break;
-               case 2:
+               case STOP_SNEAKING:
                   acActor.setClientSneaking(false);
                   break;
-               case 3:
+               case START_SPRINTING:
                   acActor.setClientSprinting(true);
                   break;
-               case 4:
+               case STOP_SPRINTING:
                   acActor.setClientSprinting(false);
                   break;
                default:
