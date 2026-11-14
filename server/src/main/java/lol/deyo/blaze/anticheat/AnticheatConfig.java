@@ -104,6 +104,9 @@ public class AnticheatConfig extends Config {
    public static final ConfigSetting<Double> stepMaxHeight = new ConfigSetting<>(
       1.05, "checks.movement.step", "Maximum vertical rise per tick while stepping."
    );
+   public static final ConfigSetting<Boolean> phaseEnabled = new ConfigSetting<>(
+      true, "checks.movement.phase", "Detects movement through solid blocks via position sweep."
+   );
    public static final ConfigSetting<Boolean> nofallEnabled = new ConfigSetting<>(
       true, "checks.movement.nofall", "Flags long falls that land without damage."
    );

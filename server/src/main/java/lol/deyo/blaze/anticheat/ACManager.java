@@ -22,6 +22,7 @@ import lol.deyo.blaze.anticheat.checks.SafeWalkCheck;
 import lol.deyo.blaze.anticheat.checks.AutoBridgeCheck;
 import lol.deyo.blaze.anticheat.checks.JesusCheck;
 import lol.deyo.blaze.anticheat.checks.NoSlowCheck;
+import lol.deyo.blaze.anticheat.checks.PhaseCheck;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
@@ -99,6 +100,7 @@ public final class ACManager {
       data.checks.add(new AutoBridgeCheck(INSTANCE));
       data.checks.add(new JesusCheck(INSTANCE));
       data.checks.add(new NoSlowCheck(INSTANCE));
+      data.checks.add(new PhaseCheck(INSTANCE));
       for (Check check : data.checks.all()) {
          data.violations.register(check, 0.4);
       }
