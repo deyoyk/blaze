@@ -16,6 +16,7 @@ import lol.deyo.blaze.configs.BlazeConfig;
 import lol.deyo.blaze.configs.EnchantConfig;
 import lol.deyo.blaze.configs.LanguageConfig;
 import lol.deyo.blaze.configs.PearlConfig;
+import lol.deyo.blaze.configs.UpdaterConfig;
 import lol.deyo.blaze.configs.extra.Config;
 import lol.deyo.blaze.configs.extra.ConfigEdit;
 import lol.deyo.blaze.framework.commands.Command;
@@ -24,6 +25,7 @@ import lol.deyo.blaze.generator.GeneratorManager;
 import lol.deyo.blaze.knockback.KnockbackManager;
 import lol.deyo.blaze.redstone.EigencraftRedstoneWire;
 import lol.deyo.blaze.redstone.PandaRedstoneWire;
+import lol.deyo.blaze.updater.AutoUpdater;
 import lol.deyo.blaze.utils.Utils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,10 +52,12 @@ public class Blaze implements IBlaze {
    private final LanguageConfig languageConfig;
    private final PearlConfig pearlConfig;
    private final EnchantConfig enchantConfig;
+   private final UpdaterConfig updaterConfig;
    private final ThreadingManager threadingManager;
    private final KnockbackManager knockbackManager;
    private final GeneratorManager generatorManager;
    private final MenuManager menuManager;
+   private final AutoUpdater autoUpdater;
 
    public Blaze() {
       instance = this;
@@ -67,11 +71,14 @@ public class Blaze implements IBlaze {
       this.languageConfig = new LanguageConfig(this);
       this.pearlConfig = new PearlConfig(this);
       this.enchantConfig = new EnchantConfig(this);
+      this.updaterConfig = new UpdaterConfig(this);
       this.configs.forEach(Config::load);
       this.threadingManager = new ThreadingManager();
       this.knockbackManager = new KnockbackManager();
       this.generatorManager = new GeneratorManager();
       this.menuManager = new MenuManager();
+      this.autoUpdater = new AutoUpdater();
+      this.autoUpdater.start();
    }
 
    public void shutdown() {
@@ -201,6 +208,14 @@ public class Blaze implements IBlaze {
 
    public EnchantConfig getEnchantConfig() {
       return this.enchantConfig;
+   }
+
+   public UpdaterConfig getUpdaterConfig() {
+      return this.updaterConfig;
+   }
+
+   public AutoUpdater getAutoUpdater() {
+      return this.autoUpdater;
    }
 
    @Override
