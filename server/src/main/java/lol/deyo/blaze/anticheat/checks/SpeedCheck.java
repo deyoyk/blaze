@@ -17,7 +17,6 @@ public class SpeedCheck extends Check {
    private static final double ICE_MULTIPLIER = 1.6;
    private static final double FRICTION_GROUND = 1.42;
    private static final double FRICTION_AIR = 1.02;
-   private static final double FRICTION_WATER = 0.45;
 
    public SpeedCheck(ACManager manager) {
       super(manager, "Speed");
@@ -92,8 +91,8 @@ public class SpeedCheck extends Check {
          speed *= 1.0 - 0.15 * (slowEffect + 1);
       }
 
-      if (player.inWater) {
-         return speed * FRICTION_WATER;
+      if (player.inWater && !data.isOnGround()) {
+         return speed * 0.9;
       }
 
       if (this.onIce(player)) {
