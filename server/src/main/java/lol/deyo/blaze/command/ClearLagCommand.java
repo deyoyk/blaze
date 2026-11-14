@@ -13,6 +13,7 @@ import org.bukkit.command.CommandSender;
 public class ClearLagCommand extends Command {
    public ClearLagCommand() {
       super("clearlag");
+      this.setDescription("Remove dropped items and non-player entities");
       this.setPermission("blaze.clearlag");
       this.setAliases(Arrays.asList("killentities", "clearentities"));
    }

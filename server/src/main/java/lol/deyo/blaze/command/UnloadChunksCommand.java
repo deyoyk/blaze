@@ -12,6 +12,7 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 public class UnloadChunksCommand extends Command {
    public UnloadChunksCommand() {
       super("unloadchunks");
+      this.setDescription("Unload unused chunks from every world");
       this.setPermission("blaze.unloadchunks");
       this.setAliases(Arrays.asList("chunkunload", "chunksunload"));
    }

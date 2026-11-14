@@ -436,7 +436,21 @@ public final class CraftServer implements org.bukkit.Server {
          this.loadCustomPermissions();
          DefaultPermissions.registerCorePermissions();
          CraftDefaultPermissions.registerCorePermissions();
+         this.applyBundledCommandDescriptions();
          this.helpMap.initializeCommands();
+      }
+   }
+
+   private void applyBundledCommandDescriptions() {
+      for (Command command : this.commandMap.getCommands()) {
+         if (!(command instanceof PluginCommand)) {
+            continue;
+         }
+
+         Plugin plugin = ((PluginCommand)command).getPlugin();
+         if (plugin != null && "spark".equalsIgnoreCase(plugin.getName()) && "tps".equalsIgnoreCase(command.getName())) {
+            command.setDescription("Show server TPS using spark");
+         }
       }
    }
 

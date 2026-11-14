@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 public class PingCommand extends Command {
    public PingCommand() {
       super("ping");
+      this.setDescription("Show your ping or another player's ping");
       this.setAliases(Arrays.asList("latency", "myping"));
    }
 

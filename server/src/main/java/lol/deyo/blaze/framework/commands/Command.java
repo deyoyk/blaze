@@ -12,12 +12,14 @@ import org.bukkit.command.defaults.BukkitCommand;
 public abstract class Command {
    protected final String name;
    protected String permission;
+   protected String description;
    protected List<String> aliases;
    protected BukkitCommand bukkitCommand;
 
    public Command(String name) {
       this.name = name;
       this.permission = null;
+      this.description = "";
       this.aliases = new ArrayList<>();
    }
 
@@ -55,6 +57,10 @@ public abstract class Command {
             command.setAliases(this.aliases);
          }
 
+         if (this.description != null && !this.description.isEmpty()) {
+            command.setDescription(this.description);
+         }
+
          this.bukkitCommand = command;
          return command;
       }
@@ -74,6 +80,10 @@ public abstract class Command {
 
    public void setPermission(String permission) {
       this.permission = permission;
+   }
+
+   public void setDescription(String description) {
+      this.description = description;
    }
 
    public void setAliases(List<String> aliases) {

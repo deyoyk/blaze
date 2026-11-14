@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 public class KnockbackCommand extends Command {
    public KnockbackCommand() {
       super("knockback");
+      this.setDescription("Manage and edit knockback profiles");
       this.setPermission("blaze.knockback");
       this.setAliases(Arrays.asList("kb", "kbprofiles"));
    }

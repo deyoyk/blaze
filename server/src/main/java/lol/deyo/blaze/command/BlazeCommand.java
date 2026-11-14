@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 public class BlazeCommand extends Command {
    public BlazeCommand() {
       super("blaze");
+      this.setDescription("Open the Blaze control panel");
       this.setPermission("blaze.config");
       this.setAliases(Arrays.asList("spigotconfig", "config"));
    }

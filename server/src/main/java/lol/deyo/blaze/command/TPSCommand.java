@@ -17,6 +17,7 @@ public class TPSCommand extends Command {
 
    public TPSCommand() {
       super("tps");
+      this.setDescription("Show server TPS, memory and thread statistics");
       this.setPermission("blaze.tps");
       this.setAliases(Arrays.asList("tickspersecond", "stps", "servertps"));
    }

@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 public class SetMaxPlayersCommand extends Command {
    public SetMaxPlayersCommand() {
       super("setmaxplayers");
+      this.setDescription("Change the maximum number of players");
       this.setPermission("blaze.setmaxplayers");
       this.setAliases(Arrays.asList("setslots", "setmaxonline"));
    }

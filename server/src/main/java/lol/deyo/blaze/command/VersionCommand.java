@@ -15,6 +15,7 @@ import org.bukkit.util.StringUtil;
 public class VersionCommand extends Command {
    public VersionCommand() {
       super("version");
+      this.setDescription("Show the Blaze server version");
       this.setAliases(Arrays.asList("ver", "about", "icanhasbukkit"));
    }
 
