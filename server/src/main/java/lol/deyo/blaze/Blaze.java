@@ -5,6 +5,7 @@ import lol.deyo.blaze.api.protocol.MovementHandler;
 import lol.deyo.blaze.api.protocol.PacketHandler;
 import lol.deyo.blaze.async.ThreadingManager;
 import lol.deyo.blaze.command.BlazeCommand;
+import lol.deyo.blaze.command.BlazeACCommand;
 import lol.deyo.blaze.command.ClearLagCommand;
 import lol.deyo.blaze.command.KnockbackCommand;
 import lol.deyo.blaze.command.PingCommand;
@@ -79,12 +80,14 @@ public class Blaze implements IBlaze {
       this.menuManager = new MenuManager();
       this.autoUpdater = new AutoUpdater();
       this.autoUpdater.start();
+      lol.deyo.blaze.anticheat.ACManager.init(this);
    }
 
    public void shutdown() {
       this.threadingManager.shutdown();
       this.knockbackManager.save(false);
       this.generatorManager.save(false);
+      lol.deyo.blaze.anticheat.ACManager.shutdown();
    }
 
    public void registerCommands(boolean reload) {
@@ -114,6 +117,7 @@ public class Blaze implements IBlaze {
 
       this.commands.add(new KnockbackCommand());
       this.commands.add(new VersionCommand());
+      this.commands.add(new BlazeACCommand());
 
       for (Command command : this.commands) {
          BukkitCommand bukkitCommand = command.asBukkitCommand();
