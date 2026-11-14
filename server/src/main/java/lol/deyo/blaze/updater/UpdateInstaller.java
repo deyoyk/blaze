@@ -72,16 +72,18 @@ public final class UpdateInstaller {
          builder.append("if exist \"").append(this.serverJar).append("\" copy /Y \"")
             .append(this.serverJar).append("\" \"").append(this.backupJar).append("\" >nul 2>&1\r\n");
       }
+      builder.append("set /a TRIES=0\r\n");
       builder.append(":retry\r\n");
       builder.append("if not exist \"").append(this.pendingJar).append("\" goto done\r\n");
       builder.append("move /Y \"").append(this.pendingJar).append("\" \"").append(this.serverJar).append("\" >nul 2>&1\r\n");
       builder.append("if errorlevel 1 (\r\n");
+      builder.append("  set /a TRIES+=1\r\n");
+      builder.append("  if %TRIES% GEQ 120 goto done\r\n");
       builder.append("  timeout /t 1 /nobreak >nul\r\n");
       builder.append("  goto retry\r\n");
       builder.append(")\r\n");
       builder.append("set \"APPLIED=1\"\r\n");
       builder.append(":done\r\n");
-      builder.append("del \"%~f0\" >nul 2>&1\r\n");
       if (this.restartCommand != null && !this.restartCommand.isEmpty()) {
          builder.append("if \"%APPLIED%\"==\"1\" start \"\"");
          for (String argument : this.restartCommand) {
@@ -89,6 +91,7 @@ public final class UpdateInstaller {
          }
          builder.append("\r\n");
       }
+      builder.append("(goto) 2>nul & del \"%~f0\" >nul 2>&1\r\n");
       return builder.toString();
    }
 

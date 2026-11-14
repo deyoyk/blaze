@@ -73,6 +73,10 @@ public class UpdateInstallerTest {
          assertTrue(script.contains("-jar"));
          assertTrue(script.contains("blaze.jar"));
          assertTrue(script.contains("--nogui"));
+
+         if (name.endsWith(".bat")) {
+            assertTrue(script.indexOf("start \"\"") < script.indexOf("del \"%~f0\""));
+         }
       } finally {
          Files.walk(root)
             .sorted(Comparator.reverseOrder())
