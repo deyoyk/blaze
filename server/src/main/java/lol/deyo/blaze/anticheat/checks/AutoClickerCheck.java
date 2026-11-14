@@ -7,6 +7,8 @@ import lol.deyo.blaze.anticheat.AnticheatConfig;
 import java.util.Deque;
 
 public class AutoClickerCheck extends Check {
+   private int sustainedLowEntropyWindows;
+
    public AutoClickerCheck(ACManager manager) {
       super(manager, "AutoClicker");
    }
@@ -30,8 +32,16 @@ public class AutoClickerCheck extends Check {
          double stddev = stddev(intervals);
          double minEntropy = (Double)AnticheatConfig.autoclickerMinEntropy.getValue();
          if (stddev < minEntropy) {
-            this.flag(data, 1.5, String.format("entropy=%.5f", stddev));
+            this.sustainedLowEntropyWindows++;
+            if (this.sustainedLowEntropyWindows >= 2) {
+               this.flag(data, 1.5, String.format("entropy=%.5f windows=%d", stddev, this.sustainedLowEntropyWindows));
+               this.sustainedLowEntropyWindows = 0;
+            }
+         } else {
+            this.sustainedLowEntropyWindows = 0;
          }
+      } else {
+         this.sustainedLowEntropyWindows = 0;
       }
    }
 
