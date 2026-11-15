@@ -19,7 +19,30 @@ public class VelocityCheck extends Check {
 
    @Override
    public void onFlying(ACPlayer data, long nowNanos) {
+      EntityPlayer player = data.player;
+      if (player.positionChanged
+         || player.inWater
+         || player.k_()
+         || player.vehicle != null
+         || player.ticksLived < 60) {
+         data.resetKbSamples();
+         data.clearPendingKb();
+         return;
+      }
+
+      if (data.getPendingKbCount() >= (Integer)AnticheatConfig.velocityMinUnconfirmed.getValue()) {
+         this.flag(
+            data,
+            2.0,
+            String.format("unconfirmed=%d", data.getPendingKbCount())
+         );
+      }
+   }
+
+   @Override
+   public void onTransaction(ACPlayer data) {
       if (data.getKbSamples() < 3) {
+         data.resetKbSamples();
          return;
       }
 

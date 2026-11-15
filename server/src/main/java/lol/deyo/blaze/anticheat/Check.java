@@ -33,6 +33,9 @@ public abstract class Check {
    public void onPlace(ACPlayer data, long nowNanos) {
    }
 
+   public void onTransaction(ACPlayer data) {
+   }
+
    public void tick(ACPlayer data) {
    }
 

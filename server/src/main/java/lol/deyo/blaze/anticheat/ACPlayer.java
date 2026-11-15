@@ -74,6 +74,27 @@ public final class ACPlayer {
    private double kbVerticalRatioSum;
    private int kbSamples;
 
+   private final java.util.Deque<PendingKnockback> pendingKb = new java.util.ArrayDeque<>(8);
+   private short transactionCounter;
+   private static final long MAX_PENDING_KB_NANOS = 3000000000L;
+   private static final int MAX_PENDING_KB = 16;
+
+   public static final class PendingKnockback {
+      public final short postTransactionId;
+      public final double x;
+      public final double y;
+      public final double z;
+      public final long createdNanos;
+
+      PendingKnockback(short postTransactionId, double x, double y, double z, long createdNanos) {
+         this.postTransactionId = postTransactionId;
+         this.x = x;
+         this.y = y;
+         this.z = z;
+         this.createdNanos = createdNanos;
+      }
+   }
+
    private double safeX;
    private double safeY;
    private double safeZ;
@@ -335,6 +356,43 @@ public final class ACPlayer {
       this.expectedKnockbackY = vY;
       this.expectedKnockbackZ = vZ;
       this.expectedKnockbackTicksLeft = 3;
+   }
+
+   public short nextTransactionId() {
+      return this.transactionCounter++;
+   }
+
+   public void trackPendingKb(short postTransactionId) {
+      this.pendingKb.addLast(new PendingKnockback(postTransactionId, this.expectedKnockbackX, this.expectedKnockbackY, this.expectedKnockbackZ, System.nanoTime()));
+      this.expirePendingKb();
+   }
+
+   public void onTransaction(short transactionId) {
+      this.expirePendingKb();
+      java.util.Iterator<PendingKnockback> it = this.pendingKb.iterator();
+      while (it.hasNext()) {
+         PendingKnockback pending = it.next();
+         if (pending.postTransactionId == transactionId) {
+            it.remove();
+            return;
+         }
+      }
+   }
+
+   public int getPendingKbCount() {
+      this.expirePendingKb();
+      return this.pendingKb.size();
+   }
+
+   public void clearPendingKb() {
+      this.pendingKb.clear();
+   }
+
+   private void expirePendingKb() {
+      long now = System.nanoTime();
+      while (!this.pendingKb.isEmpty() && now - this.pendingKb.peekFirst().createdNanos > MAX_PENDING_KB_NANOS) {
+         this.pendingKb.pollFirst();
+      }
    }
 
    private void evaluateKnockback() {

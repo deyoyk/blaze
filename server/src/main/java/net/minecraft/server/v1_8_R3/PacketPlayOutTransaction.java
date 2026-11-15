@@ -16,6 +16,14 @@ public class PacketPlayOutTransaction implements Packet<PacketListenerPlayOut> {
       this.c = var3;
    }
 
+   public short getTransactionId() {
+      return this.b;
+   }
+
+   public int getWindowId() {
+      return this.a;
+   }
+
    public void a(PacketListenerPlayOut var1) {
       var1.a(this);
    }

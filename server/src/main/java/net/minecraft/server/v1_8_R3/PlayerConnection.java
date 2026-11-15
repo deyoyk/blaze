@@ -928,6 +928,20 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
             }
          }
 
+         if (AnticheatConfigHolder.ENABLED
+            && packet instanceof PacketPlayOutEntityVelocity
+            && ((PacketPlayOutEntityVelocity)packet).getEntityId() == this.player.getId()
+            && !this.player.dead) {
+            lol.deyo.blaze.anticheat.ACPlayer acReceiver = lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player);
+            PacketPlayOutTransaction pre = new PacketPlayOutTransaction(0, acReceiver.nextTransactionId(), true);
+            PacketPlayOutTransaction post = new PacketPlayOutTransaction(0, acReceiver.nextTransactionId(), true);
+            acReceiver.trackPendingKb(post.getTransactionId());
+            this.networkManager.handle(pre);
+            this.networkManager.handle(packet);
+            this.networkManager.handle(post);
+            return;
+         }
+
          if (packet instanceof PacketPlayOutChat) {
             EntityHuman.EnumChatVisibility vis = this.player.getChatFlags();
             if (vis == EntityHuman.EnumChatVisibility.HIDDEN || vis == EntityHuman.EnumChatVisibility.SYSTEM && !((PacketPlayOutChat)packet).b()) {
@@ -1926,6 +1940,10 @@ public class PlayerConnection implements PacketListenerPlayIn, IUpdatePlayerList
 
    @Override
    public void a(PacketPlayInTransaction packetplayintransaction) {
+      if (AnticheatConfigHolder.ENABLED) {
+         lol.deyo.blaze.anticheat.ACManager.INSTANCE.get(this.player).onTransaction(packetplayintransaction.b());
+      }
+
       if (!this.player.dead) {
          PlayerConnectionUtils.ensureMainThread(packetplayintransaction, this, this.player.u());
          short oshort = this.n.getOrDefault(this.player.activeContainer.windowId, (short)-32768);

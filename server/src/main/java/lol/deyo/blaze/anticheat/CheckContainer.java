@@ -67,4 +67,13 @@ public final class CheckContainer {
          }
       }
    }
+
+   public void onTransaction(ACPlayer data) {
+      for (int i = 0; i < this.checks.size(); i++) {
+         Check check = this.checks.get(i);
+         if (check.enabled()) {
+            check.onTransaction(data);
+         }
+      }
+   }
 }
