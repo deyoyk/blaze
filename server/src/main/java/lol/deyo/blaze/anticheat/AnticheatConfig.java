@@ -78,6 +78,15 @@ public class AnticheatConfig extends Config {
    public static final ConfigSetting<Double> autoclickerMinEntropy = new ConfigSetting<>(
       0.006, "checks.combat.autoclicker", "Minimum click interval standard deviation in millis over a 20 click window."
    );
+   public static final ConfigSetting<Integer> autoclickerEqualDelayMinRun = new ConfigSetting<>(
+      10, "checks.combat.autoclicker", "Minimum run of identical click intervals before equal-delay flagging."
+   );
+   public static final ConfigSetting<Double> autoclickerMinBits = new ConfigSetting<>(
+      0.35, "checks.combat.autoclicker", "Minimum Shannon entropy in bits over 8 interval buckets in a 20 click window."
+   );
+   public static final ConfigSetting<Double> autoclickerMaxCv = new ConfigSetting<>(
+      0.08, "checks.combat.autoclicker", "Maximum click interval coefficient of variation (stddev/mean) before flagging."
+   );
    public static final ConfigSetting<Boolean> velocityEnabled = new ConfigSetting<>(
       true, "checks.combat.velocity", "Detect knockback resistance by comparing applied motion to expected knockback."
    );
@@ -86,6 +95,9 @@ public class AnticheatConfig extends Config {
    );
    public static final ConfigSetting<Double> velocityMinVerticalRatio = new ConfigSetting<>(
       0.7, "checks.combat.velocity", "Fraction of expected vertical knockback the client must take."
+   );
+   public static final ConfigSetting<Integer> velocityMinUnconfirmed = new ConfigSetting<>(
+      3, "checks.combat.velocity", "Pending sandwiched knockbacks before flagging transaction non-response."
    );
    public static final ConfigSetting<Boolean> hitboxEnabled = new ConfigSetting<>(
       true, "checks.combat.hitbox", "Attack look direction must stay within an angle of the victim."
@@ -157,6 +169,13 @@ public class AnticheatConfig extends Config {
    );
    public static final ConfigSetting<Integer> noSlowReleaseGraceTicks = new ConfigSetting<>(
       10, "checks.movement.noslow", "Ticks after releasing use item where speed is exempted."
+   );
+
+   public static final ConfigSetting<Boolean> predictionEnabled = new ConfigSetting<>(
+      true, "checks.movement.prediction", "Simulates vanilla airborne vertical physics and flags impossible deltas."
+   );
+   public static final ConfigSetting<Double> predictionMaxError = new ConfigSetting<>(
+      0.12, "checks.movement.prediction", "Vertical delta error above this is a heavy-weight flag."
    );
 
    public static final ConfigSetting<Boolean> packetsEnabled = new ConfigSetting<>(true, "checks.packets");

@@ -25,6 +25,7 @@ import lol.deyo.blaze.anticheat.checks.NoSlowCheck;
 import lol.deyo.blaze.anticheat.checks.PhaseCheck;
 import lol.deyo.blaze.anticheat.checks.ReachCheck;
 import lol.deyo.blaze.anticheat.checks.CriticalsCheck;
+import lol.deyo.blaze.anticheat.checks.PredictionCheck;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
@@ -85,6 +86,7 @@ public final class ACManager {
 
    public static void registerChecks(ACPlayer data) {
       data.checks.add(new SpeedCheck(INSTANCE));
+      data.checks.add(new PredictionCheck(INSTANCE));
       data.checks.add(new FlightCheck(INSTANCE));
       data.checks.add(new StepCheck(INSTANCE));
       data.checks.add(new GroundSpoofCheck(INSTANCE));
