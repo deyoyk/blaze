@@ -2,6 +2,8 @@ package lol.deyo.blaze.command;
 
 import lol.deyo.blaze.anticheat.ACManager;
 import lol.deyo.blaze.anticheat.ACPlayer;
+import lol.deyo.blaze.anticheat.PunishmentManager;
+import lol.deyo.blaze.anticheat.menu.AnticheatMainMenu;
 import lol.deyo.blaze.framework.commands.Command;
 import java.util.Arrays;
 import java.util.List;
@@ -9,13 +11,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class BlazeACCommand extends Command {
+   private static final String ADMIN_PERMISSION = "blaze.ac.admin";
+
    public BlazeACCommand() {
       super("blazeac");
-      this.setDescription("Blaze anticheat alerts and stats");
+      this.setDescription("Blaze anticheat alerts, stats and punishments");
       this.setPermission("blaze.ac.alerts");
       this.setAliases(Arrays.asList("ac", "blazeanticheat"));
    }
@@ -40,7 +45,8 @@ public class BlazeACCommand extends Command {
             for (int i = 0; i < data.violations.size(); i++) {
                double vl = data.violations.levelAt(i);
                if (vl > 0.0) {
-                  this.sendMessage(sender, new String[]{"&7- &c" + data.violations.nameAt(i) + "&7 vl=" + String.format("%.1f", vl)});
+                  this.sendMessage(sender, new String[]{"&7- &c" + data.violations.nameAt(i) + "&7 vl=" + String.format("%.1f", vl)
+                     + " &7violations=" + data.violations.violationCountAt(i)});
                }
             }
          } else {
@@ -55,12 +61,116 @@ public class BlazeACCommand extends Command {
          return;
       }
 
-      this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac <alerts|stats [player]|flush>"});
+      if (args[0].equalsIgnoreCase("punishments")) {
+         if (!sender.hasPermission(ADMIN_PERMISSION)) {
+            this.sendMessage(sender, new String[]{"&cYou do not have permission for this."});
+            return;
+         }
+
+         List<PunishmentManager.Record> records;
+         if (args.length >= 2) {
+            records = ACManager.INSTANCE.getPunishments().getPunishmentsByName(args[1]);
+            this.sendMessage(sender, new String[]{"&6Blaze AC &e punishments for &f" + args[1]});
+         } else {
+            records = ACManager.INSTANCE.getPunishments().getActiveBans();
+            this.sendMessage(sender, new String[]{"&6Blaze AC &e active anticheat bans"});
+         }
+
+         if (records.isEmpty()) {
+            this.sendMessage(sender, new String[]{"&7none"});
+            return;
+         }
+
+         for (PunishmentManager.Record record : records) {
+            this.sendMessage(sender, new String[]{this.formatRecord(record)});
+         }
+         return;
+      }
+
+      if (args[0].equalsIgnoreCase("unban")) {
+         if (!sender.hasPermission(ADMIN_PERMISSION)) {
+            this.sendMessage(sender, new String[]{"&cYou do not have permission for this."});
+            return;
+         }
+
+         if (args.length < 2) {
+            this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac unban <punishmentId|player>"});
+            return;
+         }
+
+         String target = args[1];
+         PunishmentManager punishments = ACManager.INSTANCE.getPunishments();
+         PunishmentManager.Record record = null;
+         try {
+            record = punishments.getPunishment(Long.parseLong(target));
+         } catch (NumberFormatException ignored) {
+         }
+
+         if (record == null) {
+            List<PunishmentManager.Record> records = punishments.getPunishmentsByName(target);
+            for (PunishmentManager.Record r : records) {
+               if (r.active && r.type == PunishmentManager.PunishmentType.BAN) {
+                  record = r;
+                  break;
+               }
+            }
+         }
+
+         if (record == null) {
+            this.sendMessage(sender, new String[]{"&cNo anticheat punishment found for: " + target});
+            return;
+         }
+
+         if (record.type != PunishmentManager.PunishmentType.BAN) {
+            this.sendMessage(sender, new String[]{"&cPunishment " + record.id + " is a " + record.type + ", not a ban."});
+            return;
+         }
+
+         if (!record.active) {
+            this.sendMessage(sender, new String[]{"&cPunishment " + record.id + " is already lifted."});
+            return;
+         }
+
+         String by = sender instanceof Player ? ((Player)sender).getName() : "console";
+         if (punishments.unban(record.id, by)) {
+            this.sendMessage(sender, new String[]{"&6Blaze AC &a lifted anticheat ban &e" + record.id + " &afor &f" + record.name});
+         } else {
+            this.sendMessage(sender, new String[]{"&cFailed to lift punishment " + record.id});
+         }
+         return;
+      }
+
+      if (args[0].equalsIgnoreCase("gui")) {
+         if (!(sender instanceof Player)) {
+            this.sendMessage(sender, new String[]{"&cThis command can only be used by players."});
+            return;
+         }
+
+         Player player = (Player)sender;
+         if (!player.hasPermission(ADMIN_PERMISSION)) {
+            this.sendMessage(sender, new String[]{"&cYou do not have permission for the anticheat GUI."});
+            return;
+         }
+
+         new AnticheatMainMenu(player).open();
+         return;
+      }
+
+      this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac <alerts|stats [player]|flush|punishments [player]|unban <id|player>|gui>"});
+   }
+
+   private String formatRecord(PunishmentManager.Record record) {
+      String expires = record.expires > 0
+         ? new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date(record.expires))
+         : "permanent";
+      return "&7#" + record.id + " &f" + record.name + " &7" + record.type
+         + " &7check=&c" + record.check + " &7expires=" + expires
+         + (record.active ? " &aactive" : " &8lifted");
    }
 
    private ACPlayer findPlayer(String name) {
       Map<UUID, ACPlayer> unused = null;
-      for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
+      for (Player online : Bukkit.getOnlinePlayers()) {
          if (online.getName().equalsIgnoreCase(name)) {
             return ACManager.INSTANCE.get(online.getUniqueId());
          }
@@ -73,12 +183,15 @@ public class BlazeACCommand extends Command {
    public List<String> tabComplete(CommandSender sender, String[] args) {
       if (args.length == 1) {
          String partial = args[args.length - 1];
-         return Stream.of("alerts", "stats", "flush").filter(s -> s.regionMatches(true, 0, partial, 0, partial.length())).collect(Collectors.toList());
+         return Stream.of("alerts", "stats", "flush", "punishments", "unban", "gui")
+            .filter(s -> s.regionMatches(true, 0, partial, 0, partial.length())).collect(Collectors.toList());
       }
 
-      if (args.length == 2 && args[0].equalsIgnoreCase("stats")) {
+      if (args.length == 2 && (args[0].equalsIgnoreCase("stats") || args[0].equalsIgnoreCase("unban")
+         || args[0].equalsIgnoreCase("punishments"))) {
          String partial = args[1];
-         return org.bukkit.Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(n -> n.regionMatches(true, 0, partial, 0, partial.length())).collect(Collectors.toList());
+         return Bukkit.getOnlinePlayers().stream().map(Player::getName)
+            .filter(n -> n.regionMatches(true, 0, partial, 0, partial.length())).collect(Collectors.toList());
       }
 
       return super.tabComplete(sender, args);
