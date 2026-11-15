@@ -2,8 +2,10 @@ package lol.deyo.blaze.command;
 
 import lol.deyo.blaze.anticheat.ACManager;
 import lol.deyo.blaze.anticheat.ACPlayer;
+import lol.deyo.blaze.anticheat.AnticheatConfig;
 import lol.deyo.blaze.anticheat.PunishmentManager;
 import lol.deyo.blaze.anticheat.menu.AnticheatMainMenu;
+import lol.deyo.blaze.configs.AnticheatConfigHolder;
 import lol.deyo.blaze.framework.commands.Command;
 import java.util.Arrays;
 import java.util.List;
@@ -156,7 +158,21 @@ public class BlazeACCommand extends Command {
          return;
       }
 
-      this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac <alerts|stats [player]|flush|punishments [player]|unban <id|player>|gui>"});
+      if (args[0].equalsIgnoreCase("toggle")) {
+         if (!sender.hasPermission(ADMIN_PERMISSION)) {
+            this.sendMessage(sender, new String[]{"&cYou do not have permission for this."});
+            return;
+         }
+
+         boolean newState = !(Boolean)AnticheatConfig.enabled.getValue();
+         AnticheatConfig.enabled.set(newState, true);
+         AnticheatConfigHolder.ENABLED = newState;
+         this.sendMessage(sender, new String[]{"&6Blaze AC &e anticheat is now "
+            + (newState ? "&aenabled" : "&cdisabled")});
+         return;
+      }
+
+      this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac <alerts|stats [player]|flush|punishments [player]|unban <id|player>|gui|toggle>"});
    }
 
    private String formatRecord(PunishmentManager.Record record) {
@@ -183,7 +199,7 @@ public class BlazeACCommand extends Command {
    public List<String> tabComplete(CommandSender sender, String[] args) {
       if (args.length == 1) {
          String partial = args[args.length - 1];
-         return Stream.of("alerts", "stats", "flush", "punishments", "unban", "gui")
+         return Stream.of("alerts", "stats", "flush", "punishments", "unban", "gui", "toggle")
             .filter(s -> s.regionMatches(true, 0, partial, 0, partial.length())).collect(Collectors.toList());
       }
 
