@@ -73,14 +73,13 @@ public class PredictionCheck extends Check {
       double error = Math.abs(deltaY - expected);
       this.expectedY = expected;
 
-      if (error > UNCERTAINTY && Math.abs(deltaY) < 0.9) {
-         if (error > (Double)AnticheatConfig.predictionMaxError.getValue()) {
-            this.flag(data, 2.0, String.format("dy=%.3f exp=%.3f err=%.3f", deltaY, expected, error));
-         } else {
-            this.flag(data, 1.0, String.format("dy=%.3f exp=%.3f err=%.3f", deltaY, expected, error));
-         }
-
+      boolean advantage = deltaY > expected + UNCERTAINTY;
+      boolean disadvantage = deltaY < expected - UNCERTAINTY;
+      if (advantage && error > (Double)AnticheatConfig.predictionMaxError.getValue()) {
+         this.flag(data, 2.0, String.format("dy=%.3f exp=%.3f err=%.3f", deltaY, expected, error));
          this.tracking = false;
+      } else if (disadvantage) {
+         this.expectedY = deltaY;
       }
    }
 }
