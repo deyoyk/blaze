@@ -70,11 +70,13 @@ jobs:
           echo "Built jar version: $version"
           test "$version" = "$TAG"
 
-      - name: Upload jar
+      - name: Upload jars
         uses: actions/upload-artifact@v7
         with:
-          name: blaze-jar
-          path: server/target/blaze.jar
+          name: blaze-jars
+          path: |
+            server/target/blaze.jar
+            api/target/blaze-api-*.jar
           if-no-files-found: error
 
   release:
@@ -89,10 +91,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.sha }}
 
-      - name: Download jar
+      - name: Download jars
         uses: actions/download-artifact@v8
         with:
-          name: blaze-jar
+          name: blaze-jars
 
       - name: Tag and publish release
         env:
@@ -101,11 +103,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          cp server/target/blaze.jar blaze.jar
           cp blaze.jar "blaze-${TAG}.jar"
+          cp api/target/blaze-api-*.jar "blaze-api-${TAG}.jar"
 
           git tag "$TAG" "$GITHUB_SHA"
           git push origin "$TAG"
 
-          gh release create "$TAG" "blaze-${TAG}.jar" blaze.jar \
+          gh release create "$TAG" "blaze-${TAG}.jar" blaze.jar "blaze-api-${TAG}.jar" blaze-api.jar \
             --title "Blaze ${TAG}" \
             --generate-notes
