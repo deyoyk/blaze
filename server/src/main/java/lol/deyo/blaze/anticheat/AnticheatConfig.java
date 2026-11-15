@@ -7,7 +7,7 @@ import lol.deyo.blaze.utils.CC;
 
 public class AnticheatConfig extends Config {
    public static final ConfigSetting<Boolean> enabled = new ConfigSetting<>(
-      true, "general", "Master switch for the built-in anticheat."
+      false, "general", "Master switch for the built-in anticheat."
    );
    public static final ConfigSetting<Boolean> debug = new ConfigSetting<>(
       false, "general", "Log every check failure for tuning."

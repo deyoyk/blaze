@@ -25,7 +25,7 @@ Server:
 - Colorized console with a branded startup banner
 - Config GUI and utility commands (ping, TPS, clear lag, chunk unload, max players, `/gmc`, `/gms`)
 
-Anticheat (built in, enabled by default):
+Anticheat (built in, experimental, disabled by default):
 
 - Speed, flight, timer, reach, hitbox, phase, NoSlow, FastPlace/FastBreak and more, each with its own config toggle
 - Transaction-verified knockback
@@ -34,7 +34,7 @@ Anticheat (built in, enabled by default):
 
 ## Anticheat
 
-The anticheat is configurable in `blaze/anticheat/config.yml`.
+The anticheat is experimental and under active development. It is disabled by default. Enable it with the `enabled` option in `blaze/anticheat/config.yml` (generated on first run).
 
 - **Transaction-verified knockback.** Every knockback is sandwiched between protocol-level confirm transactions. Clients that ignore knockback accumulate unconfirmed packets and get flagged. Delivery and feel stay byte-identical.
 - **Movement prediction.** Vanilla physics are simulated server-side to flag impossible deltas such as hover, modified gravity, and fake falls. Flight, vehicles, water, climbables, teleports, and potion effects are exempt.
