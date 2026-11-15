@@ -12,23 +12,8 @@ public class AnticheatConfig extends Config {
    public static final ConfigSetting<Boolean> debug = new ConfigSetting<>(
       false, "general", "Log every check failure for tuning."
    );
-   public static final ConfigSetting<Boolean> alertOnConsole = new ConfigSetting<>(
-      true, "general", "Print violations to console."
-   );
-   public static final ConfigSetting<String> alertPermission = new ConfigSetting<>(
-      "blaze.ac.alerts", "general", "Permission required to receive and toggle alerts."
-   );
-   public static final ConfigSetting<Boolean> alertJoinMessage = new ConfigSetting<>(
-      true, "general", "Tell players with alert permission that alerts are available on join."
-   );
-   public static final ConfigSetting<Integer> alertCooldownMs = new ConfigSetting<>(
-      400, "general", "Minimum millis between alerts for the same player and check."
-   );
    public static final ConfigSetting<Integer> maxViolationLevel = new ConfigSetting<>(
       20, "general", "Violation level that triggers the configured punishment."
-   );
-   public static final ConfigSetting<String> punishmentCommand = new ConfigSetting<>(
-      "ban %player% Blaze Anticheat: Unfair advantage", "general", "Console command run when a player exceeds maxViolationLevel."
    );
    public static final ConfigSetting<Boolean> setbackOnViolation = new ConfigSetting<>(
       true, "general", "Rubber-band movement back to the last safe position on movement violations."

@@ -3,8 +3,7 @@ package lol.deyo.blaze.anticheat;
 import lol.deyo.blaze.Blaze;
 import lol.deyo.blaze.anticheat.AnticheatConfig;
 import lol.deyo.blaze.configs.AnticheatConfigHolder;
-import lol.deyo.blaze.utils.CC;
-import lol.deyo.blaze.anticheat.checks.SpeedCheck;
+import lol.deyo.blaze.utils.CC;import lol.deyo.blaze.anticheat.checks.SpeedCheck;
 import lol.deyo.blaze.anticheat.checks.FlightCheck;
 import lol.deyo.blaze.anticheat.checks.StepCheck;
 import lol.deyo.blaze.anticheat.checks.GroundSpoofCheck;
@@ -43,6 +42,8 @@ public final class ACManager {
 
    private final Map<UUID, ACPlayer> players = new ConcurrentHashMap<>();
    private final ViolationStore store = new ViolationStore();
+   private final PunishmentManager punishments = new PunishmentManager();
+   private final StatsBroadcastTask statsTask = new StatsBroadcastTask();
    private volatile boolean alertsToggled;
 
    public void checksOnFlying(ACPlayer data, long nowNanos) {
@@ -71,13 +72,25 @@ public final class ACManager {
    public static void init(Blaze blaze) {
       AnticheatConfig config = new AnticheatConfig(blaze);
       config.load();
+      AnticheatMessagesConfig messages = new AnticheatMessagesConfig(blaze);
+      messages.load();
+      new AnticheatGuiConfig(blaze).load();
+      AnticheatPunishmentsConfig punishmentsConfig = new AnticheatPunishmentsConfig(blaze);
+      punishmentsConfig.load();
       AnticheatConfigHolder.ENABLED = (Boolean)AnticheatConfig.enabled.getValue();
       AnticheatConfigHolder.DEBUG = (Boolean)AnticheatConfig.debug.getValue();
       INSTANCE.store.init();
+      INSTANCE.punishments.loadSchedule(punishmentsConfig);
+      INSTANCE.statsTask.start();
    }
 
    public static void shutdown() {
+      INSTANCE.statsTask.stop();
       INSTANCE.store.shutdown();
+   }
+
+   public PunishmentManager getPunishments() {
+      return this.punishments;
    }
 
    public ACPlayer get(EntityPlayer player) {
@@ -119,8 +132,9 @@ public final class ACManager {
    public void handleJoin(EntityPlayer player) {
       ACPlayer data = this.get(player);
       this.store.loadViolations(player.getUniqueID(), data.violations);
-      if ((Boolean)AnticheatConfig.alertJoinMessage.getValue() && player.getBukkitEntity().hasPermission((String)AnticheatConfig.alertPermission.getValue())) {
-         String text = CC.t(PREFIX + "You have alert permission. Use /blazeac alerts.");
+      if ((Boolean)AnticheatMessagesConfig.alertJoinMessage.getValue()
+         && player.getBukkitEntity().hasPermission((String)AnticheatMessagesConfig.alertPermission.getValue())) {
+         String text = CC.t((String)AnticheatMessagesConfig.alertJoinText.getValue());
          String json = "{\"text\":\"" + text.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
          player.playerConnection.sendPacket(new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(json)));
       }
@@ -145,28 +159,46 @@ public final class ACManager {
          );
       }
 
-      if (now - data.getLastAlertNanos() >= (long)(Integer)AnticheatConfig.alertCooldownMs.getValue() * 1000000L) {
+      if (now - data.getLastAlertNanos() >= (long)(Integer)AnticheatMessagesConfig.alertCooldownMs.getValue() * 1000000L) {
          data.setLastAlertNanos(now);
-         String alert = CC.t(PREFIX + "&f" + player.getName() + " &7failed &c" + check.getName()
-            + "&7 vl=" + String.format("%.1f", level) + " &8" + detail);
-         if ((Boolean)AnticheatConfig.alertOnConsole.getValue()) {
+         String alert = CC.t(((String)AnticheatMessagesConfig.alertFormat.getValue())
+            .replace("%player%", player.getName())
+            .replace("%check%", check.getName())
+            .replace("%vl%", String.format("%.1f", level))
+            .replace("%detail%", detail == null ? "" : detail));
+         if ((Boolean)AnticheatMessagesConfig.alertOnConsole.getValue()) {
             MinecraftServer.LOGGER.info(alert);
          }
 
          if (this.alertsToggled) {
             for (Player online : Bukkit.getOnlinePlayers()) {
-               if (online.hasPermission((String)AnticheatConfig.alertPermission.getValue())) {
+               if (online.hasPermission((String)AnticheatMessagesConfig.alertPermission.getValue())) {
                   online.sendMessage(alert);
                }
             }
          }
       }
 
+      int violationCount = data.violations.violationCount(check.getName());
+      PunishmentManager.ScheduledPunishment punishment = this.punishments.resolve(check.getName(), violationCount);
+      if (punishment != null && violationCount == punishment.violationNumber) {
+         data.violations.reset(check.getName());
+         this.punishments.punish(data, check, punishment, violationCount);
+         this.store.queueViolation(player.getUniqueID(), player.getName(), check.getName(), level, detail);
+         return true;
+      }
+
       int maxVl = (Integer)AnticheatConfig.maxViolationLevel.getValue();
       if (level >= maxVl) {
-         data.violations.reset();
-         String command = ((String)AnticheatConfig.punishmentCommand.getValue()).replace("%player%", player.getName());
-         MinecraftServer.getServer().postToMainThread(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
+         data.violations.reset(check.getName());
+         PunishmentManager.ScheduledPunishment fallback =
+            this.punishments.resolve(check.getName(), Integer.MAX_VALUE);
+         if (fallback == null) {
+            fallback = new PunishmentManager.ScheduledPunishment(
+               maxVl, PunishmentManager.PunishmentType.BAN, 0L, "default");
+         }
+
+         this.punishments.punish(data, check, fallback, violationCount);
          this.store.queueViolation(player.getUniqueID(), player.getName(), check.getName(), level, detail);
       } else if ((Boolean)AnticheatConfig.storageLogViolations.getValue()) {
          this.store.queueViolation(player.getUniqueID(), player.getName(), check.getName(), level, detail);
