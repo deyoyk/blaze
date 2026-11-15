@@ -17,6 +17,10 @@ public class SpeedCheck extends Check {
    private static final double ICE_MULTIPLIER = 1.6;
    private static final double FRICTION_GROUND = 1.42;
    private static final double FRICTION_AIR = 1.02;
+   private static final double SPEED_BUFFER_DECAY = 0.08;
+   private static final double SPEED_BUFFER_LIMIT = 0.5;
+
+   private final ViolationBuffer speedBuffer = new ViolationBuffer(SPEED_BUFFER_DECAY, SPEED_BUFFER_LIMIT);
 
    public SpeedCheck(ACManager manager) {
       super(manager, "Speed");
@@ -64,9 +68,18 @@ public class SpeedCheck extends Check {
       }
 
       if (deltaXZ > allowed) {
-         if (this.flag(data, Math.min(2.0, 0.5 + (deltaXZ - allowed) * 5.0), String.format("d=%.3f max=%.3f", deltaXZ, allowed))) {
-            this.setback(data);
+         double excess = deltaXZ - allowed;
+         double buffered = this.speedBuffer.add(Math.min(excess, SPEED_BUFFER_LIMIT));
+         if (buffered > (Double)AnticheatConfig.speedBufferLimit.getValue()) {
+            if (this.flag(data,
+               Math.min(2.0, 0.5 + buffered * 2.0),
+               String.format("d=%.3f max=%.3f buffered=%.2f", deltaXZ, allowed, buffered))) {
+               this.speedBuffer.reset();
+               this.setback(data);
+            }
          }
+      } else {
+         this.speedBuffer.addClean();
       }
    }
 

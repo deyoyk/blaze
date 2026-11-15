@@ -98,6 +98,9 @@ public class AnticheatConfig extends Config {
    public static final ConfigSetting<Double> speedMaxMultiplier = new ConfigSetting<>(
       1.1, "checks.movement.speed", "Allowed multiplier over the computed vanilla maximum speed."
    );
+   public static final ConfigSetting<Double> speedBufferLimit = new ConfigSetting<>(
+      0.3, "checks.movement.speed", "Buffered speed excess allowed before flagging; decays on clean ticks."
+   );
    public static final ConfigSetting<Boolean> flightEnabled = new ConfigSetting<>(
       true, "checks.movement.flight", "Vertical acceleration and hover checks for airborne players."
    );
@@ -127,6 +130,9 @@ public class AnticheatConfig extends Config {
    );
    public static final ConfigSetting<Double> timerMaxRate = new ConfigSetting<>(
       1.08, "checks.movement.timer", "Maximum ratio of movement packets to elapsed ticks."
+   );
+   public static final ConfigSetting<Double> timerMaxBalanceTicks = new ConfigSetting<>(
+      3.0, "checks.movement.timer", "Buffered timer excess in ticks allowed before flagging; decays on clean windows."
    );
    public static final ConfigSetting<Boolean> safeWalkEnabled = new ConfigSetting<>(
       true, "checks.movement.safewalk", "Detects walking along block edges without sneaking."
