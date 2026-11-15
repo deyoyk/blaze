@@ -2,7 +2,16 @@
 
 Blaze Spigot is a 1.8.8 Spigot fork focused on performance and PvP.
 
+## Download
+
+Download the latest jars from the [releases page](https://github.com/deyoyk/blaze/releases/latest):
+
+- [blaze.jar](https://github.com/deyoyk/blaze/releases/latest/download/blaze.jar), the server jar
+- [blaze-api.jar](https://github.com/deyoyk/blaze/releases/latest/download/blaze-api.jar), the public API for plugin integrations
+
 ## Features
+
+Server:
 
 - Custom knockback profiles
 - Latency-compensated combat with rewound hitboxes and timestamped hits
@@ -13,13 +22,31 @@ Blaze Spigot is a 1.8.8 Spigot fork focused on performance and PvP.
 - AntiXray and activation range tuning
 - Ender pearl controls
 - Bundled Spark profiler and SlimeWorldManager bridge
-- Public API jar for plugin integrations (`blaze-api`)
 - Colorized console with a branded startup banner
 - Config GUI and utility commands (ping, TPS, clear lag, chunk unload, max players, `/gmc`, `/gms`)
 
-## Download
+Anticheat (built in, enabled by default):
 
-Download the latest jars from the [releases page](https://github.com/deyoyk/blaze/releases/latest) or directly: [blaze.jar](https://github.com/deyoyk/blaze/releases/latest/download/blaze.jar) and [blaze-api.jar](https://github.com/deyoyk/blaze/releases/latest/download/blaze-api.jar).
+- Speed, flight, timer, reach, hitbox, phase, NoSlow, FastPlace/FastBreak and more, each with its own config toggle
+- Transaction-verified knockback
+- Movement prediction
+- Statistical click analysis
+
+## Anticheat
+
+The anticheat is configurable in `blaze/anticheat/config.yml`.
+
+- **Transaction-verified knockback.** Every knockback is sandwiched between protocol-level confirm transactions. Clients that ignore knockback accumulate unconfirmed packets and get flagged. Delivery and feel stay byte-identical.
+- **Movement prediction.** Vanilla physics are simulated server-side to flag impossible deltas such as hover, modified gravity, and fake falls. Flight, vehicles, water, climbables, teleports, and potion effects are exempt.
+- **Statistical click analysis.** Click intervals are checked for entropy, equal-delay runs, consistency, and CPS tiers. Each subcheck requires sustained windows before flagging.
+
+Measured on a live 1.8.8 server under sustained PvP bot load:
+
+- 0 false flags over 600 ticks of legit PvP (jump-crits, w-taps, knockback combos)
+- 0 flags over 400 ticks on a clean idle bot
+- Cheat clients (knockback-ignore, hover, constant-rate clicking) each banned automatically
+- 0 missed hits, knockback values unchanged (kbY 0.390, kbXZ 0.675)
+- Under 1% of the tick budget (~0.35 ms/tick), verified by CPU-sampling A/B with the anticheat on and off
 
 ## Updates
 
@@ -32,17 +59,6 @@ mvn clean package
 ```
 
 The server jar is written to `server/target/blaze.jar` and the API jar to `api/target/blaze-api-<version>.jar`.
-
-## Anticheat
-
-Blaze ships with a built-in anticheat, enabled by default and configurable in `blaze/anticheat/config.yml`.
-
-- **Transaction-verified knockback** — every knockback is sandwiched between protocol-level confirm transactions; clients that ignore knockback accumulate unconfirmed packets and are flagged, while delivery and feel stay byte-identical
-- **Movement prediction** — server-side simulation of vanilla physics flags impossible deltas (hover, modified gravity, fake falls) with a full exemption set (flight, vehicles, water, climbables, teleport, potion effects)
-- **Statistical click analysis** — click-interval entropy, equal-delay runs, consistency (coefficient of variation) and CPS tiers, each requiring sustained windows before flagging
-- Plus speed, flight, timer, reach, hitbox, phase, NoSlow, FastPlace/FastBreak and more, all with per-check config toggles
-
-Measured on a live 1.8.8 server under sustained PvP bot load: legit PvP movement (jump-crits, w-taps, knockback combos) produced **0 false flags over 600 ticks**, a clean idle bot **0 flags over 400 ticks**, while cheat clients (knockback-ignore, hover, constant-rate clicking) were each **banned automatically**. Hit registration stayed at **0 missed hits** with knockback values unchanged (kbY 0.390, kbXZ 0.675), and the full pipeline costs **under 1% of the tick budget (~0.35 ms/tick)**, verified by CPU-sampling A/B with the anticheat on and off.
 
 ## License
 
