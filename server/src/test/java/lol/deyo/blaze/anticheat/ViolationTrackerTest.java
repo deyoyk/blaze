@@ -68,6 +68,65 @@ public class ViolationTrackerTest {
       assertTrue(tracker.levelOf("Check0") == 0.0);
    }
 
+   @Test
+   public void violationCountIncrementsPerPenalize() {
+      ViolationTracker tracker = new ViolationTracker();
+      tracker.register(new StubCheck("Speed"), 0.0);
+      assertEquals(0, tracker.violationCount("Speed"));
+      tracker.penalize("Speed", 1.0, 0L);
+      tracker.penalize("Speed", 1.0, 1000000000L);
+      tracker.penalize("Speed", 1.0, 2000000000L);
+      assertEquals(3, tracker.violationCount("Speed"));
+      assertEquals(0, tracker.violationCount("Flight"));
+   }
+
+   @Test
+   public void resetSingleCheckClearsLevelOnly() {
+      ViolationTracker tracker = new ViolationTracker();
+      tracker.register(new StubCheck("Speed"), 0.0);
+      tracker.penalize("Speed", 5.0, 0L);
+      tracker.penalize("Speed", 5.0, 1000L);
+      tracker.reset("Speed");
+      assertEquals(0.0, tracker.levelOf("Speed"), 0.0001);
+      assertEquals(2, tracker.violationCount("Speed"));
+   }
+
+   @Test
+   public void resetViolationsClearsLevelAndCount() {
+      ViolationTracker tracker = new ViolationTracker();
+      tracker.register(new StubCheck("Speed"), 0.0);
+      tracker.penalize("Speed", 5.0, 0L);
+      tracker.penalize("Speed", 5.0, 1000L);
+      tracker.resetViolations("Speed");
+      assertEquals(0.0, tracker.levelOf("Speed"), 0.0001);
+      assertEquals(0, tracker.violationCount("Speed"));
+   }
+
+   @Test
+   public void resetClearsViolationCountsToo() {
+      ViolationTracker tracker = new ViolationTracker();
+      tracker.register(new StubCheck("Speed"), 0.0);
+      tracker.register(new StubCheck("Flight"), 0.0);
+      tracker.penalize("Speed", 5.0, 0L);
+      tracker.penalize("Flight", 5.0, 0L);
+      tracker.reset();
+      assertEquals(0, tracker.violationCount("Speed"));
+      assertEquals(0, tracker.violationCount("Flight"));
+   }
+
+   @Test
+   public void violationCountGrowsBeyondInitialCapacity() {
+      ViolationTracker tracker = new ViolationTracker();
+      for (int i = 0; i < 20; i++) {
+         tracker.register(new StubCheck("Check" + i), 0.0);
+      }
+
+      tracker.penalize("Check19", 2.0, 0L);
+      tracker.penalize("Check19", 2.0, 1000L);
+      assertEquals(2, tracker.violationCount("Check19"));
+      assertEquals(2, tracker.violationCountAt(19));
+   }
+
    private static final class StubCheck extends Check {
       StubCheck(String name) {
          super(null, name);

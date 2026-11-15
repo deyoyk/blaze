@@ -30,6 +30,14 @@ public class Config {
       return this.file.getName();
    }
 
+   public File getFile() {
+      return this.file;
+   }
+
+   public YamlConfiguration getBukkitConfig() {
+      return this.bukkitConfig;
+   }
+
    public ConfigSetting<?> getSetting(String name) {
       for (ConfigSetting<?> setting : this.configSettings) {
          if (setting.getName().equalsIgnoreCase(name)) {
