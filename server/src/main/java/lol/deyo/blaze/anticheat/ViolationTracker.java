@@ -5,6 +5,7 @@ public final class ViolationTracker {
    private double[] levels = new double[16];
    private double[] decayPerSecond = new double[16];
    private long[] lastNanos = new long[16];
+   private int[] violations = new int[16];
    private int count;
 
    public void register(Check check, double decayPerSecond) {
@@ -21,6 +22,7 @@ public final class ViolationTracker {
          this.levels = lv;
          this.decayPerSecond = dec;
          this.lastNanos = last;
+         this.violations = new int[this.count * 2];
       }
 
       this.checkNames[this.count] = check.getName();
@@ -43,7 +45,28 @@ public final class ViolationTracker {
       double result = decayed + weight;
       this.levels[idx] = result;
       this.lastNanos[idx] = nowNanos;
+      this.violations[idx]++;
       return result;
+   }
+
+   public int violationCount(String checkName) {
+      int idx = this.indexOf(checkName);
+      return idx < 0 ? 0 : this.violations[idx];
+   }
+
+   public void reset(String checkName) {
+      int idx = this.indexOf(checkName);
+      if (idx >= 0) {
+         this.levels[idx] = 0.0;
+      }
+   }
+
+   public void resetViolations(String checkName) {
+      int idx = this.indexOf(checkName);
+      if (idx >= 0) {
+         this.levels[idx] = 0.0;
+         this.violations[idx] = 0;
+      }
    }
 
    private double decay(int idx, long nowNanos) {
@@ -65,6 +88,7 @@ public final class ViolationTracker {
    public void reset() {
       for (int i = 0; i < this.count; i++) {
          this.levels[i] = 0.0;
+         this.violations[i] = 0;
       }
    }
 
@@ -78,6 +102,10 @@ public final class ViolationTracker {
 
    public String nameAt(int idx) {
       return this.checkNames[idx];
+   }
+
+   public int violationCountAt(int idx) {
+      return this.violations[idx];
    }
 
    private int indexOf(String checkName) {
