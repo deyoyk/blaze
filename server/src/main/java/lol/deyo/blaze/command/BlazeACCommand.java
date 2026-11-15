@@ -7,6 +7,10 @@ import lol.deyo.blaze.anticheat.PunishmentManager;
 import lol.deyo.blaze.anticheat.menu.AnticheatMainMenu;
 import lol.deyo.blaze.configs.AnticheatConfigHolder;
 import lol.deyo.blaze.framework.commands.Command;
+import lol.deyo.blaze.utils.CC;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
+import net.minecraft.server.v1_8_R3.IChatBaseComponent;
+import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -172,7 +176,40 @@ public class BlazeACCommand extends Command {
          return;
       }
 
-      this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac <alerts|stats [player]|flush|punishments [player]|unban <id|player>|gui|toggle>"});
+      if (args[0].equalsIgnoreCase("cps")) {
+         if (args.length < 2) {
+            this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac cps <username>"});
+            return;
+         }
+
+         ACPlayer data = this.findPlayer(args[1]);
+         if (data == null) {
+            this.sendMessage(sender, new String[]{"&cPlayer not tracked: " + args[1]});
+            return;
+         }
+
+         int cps = data.getClicksThisSecond();
+         java.util.Deque<Long> intervals = data.getClickIntervals();
+         double avg = 0.0;
+         if (!intervals.isEmpty()) {
+            long sum = 0L;
+            for (long interval : intervals) {
+               sum += interval;
+            }
+
+            avg = intervals.size() > 0 ? 1.0E9 / (sum / intervals.size()) : 0.0;
+         }
+
+         String message = CC.t("&6Blaze AC &e " + data.player.getName() + " &7cps: &f" + cps
+            + " &7avg: &f" + String.format("%.1f", avg));
+         String json = "{\"text\":\"" + message.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
+         EntityPlayer target = data.player;
+         target.playerConnection.sendPacket(new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(json), (byte) 2));
+         this.sendMessage(sender, new String[]{"&6Blaze AC &e CPS of &f" + data.player.getName() + " &7sent to their action bar"});
+         return;
+      }
+
+      this.sendMessage(sender, new String[]{"&6Blaze AC &e Usage: /blazeac <alerts|stats [player]|flush|punishments [player]|unban <id|player>|gui|toggle|cps <username>>"});
    }
 
    private String formatRecord(PunishmentManager.Record record) {
@@ -199,7 +236,7 @@ public class BlazeACCommand extends Command {
    public List<String> tabComplete(CommandSender sender, String[] args) {
       if (args.length == 1) {
          String partial = args[args.length - 1];
-         return Stream.of("alerts", "stats", "flush", "punishments", "unban", "gui", "toggle")
+         return Stream.of("alerts", "stats", "flush", "punishments", "unban", "gui", "toggle", "cps")
             .filter(s -> s.regionMatches(true, 0, partial, 0, partial.length())).collect(Collectors.toList());
       }
 
