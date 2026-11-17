@@ -378,7 +378,7 @@ public class CraftInventory implements Inventory {
                this.setItem(first, itemStack);
                toDelete = 0;
             }
-         } while (toDelete <= 0);
+         } while (toDelete > 0);
       }
 
       return leftover;
