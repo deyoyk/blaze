@@ -208,7 +208,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 
       @Override
       public void sendMessage(BaseComponent component) {
-         this.sendMessage(component);
+         CraftPlayer.this.sendMessage(component);
       }
 
       @Override
@@ -369,7 +369,7 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
 
    @Override
    public void sendMessage(BaseComponent component) {
-      this.sendMessage(component);
+      this.sendMessage(new BaseComponent[]{component});
    }
 
    @Override
