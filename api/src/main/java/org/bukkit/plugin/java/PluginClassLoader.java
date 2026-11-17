@@ -39,6 +39,15 @@ public final class PluginClassLoader extends URLClassLoader {
          Class<?> jarClass;
          try {
             jarClass = Class.forName(description.getMain(), true, this);
+         } catch (UnsupportedClassVersionError var10) {
+            throw new InvalidPluginException(
+               "Plugin "
+                  + description.getFullName()
+                  + " requires a newer Java runtime than the one Blaze is running on ("
+                  + System.getProperty("java.version", "unknown")
+                  + "). Start Blaze with a newer Java version.",
+               var10
+            );
          } catch (ClassNotFoundException var10) {
             throw new InvalidPluginException("Cannot find main class `" + description.getMain() + "'", var10);
          }

@@ -60,6 +60,30 @@ public final class JavaPluginLoader implements PluginLoader {
             throw new InvalidPluginException(var11);
          }
 
+         int runtimeVersion = PluginClassVersion.runtimeClassVersion();
+         int requiredVersion = 0;
+         try {
+            requiredVersion = PluginClassVersion.scanMain(file, description.getMain());
+         } catch (Exception var8) {
+            // Let the class loader report a corrupt jar with its own message.
+         }
+
+         if (requiredVersion > runtimeVersion) {
+            throw new InvalidPluginException(
+               "Plugin "
+                  + description.getFullName()
+                  + " ("
+                  + file.getName()
+                  + ") requires "
+                  + PluginClassVersion.describe(requiredVersion)
+                  + ", but Blaze is running on "
+                  + PluginClassVersion.describe(runtimeVersion)
+                  + ". Start Blaze with Java "
+                  + PluginClassVersion.javaFeature(requiredVersion)
+                  + " or newer."
+            );
+         }
+
          File parentFile = file.getParentFile();
          File dataFolder = new File(parentFile, description.getName());
          File oldDataFolder = new File(parentFile, description.getRawName());

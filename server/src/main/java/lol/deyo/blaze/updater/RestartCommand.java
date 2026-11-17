@@ -12,12 +12,16 @@ public final class RestartCommand {
    }
 
    public static List<String> build(Path serverJar) {
+      return build(serverJar, javaExecutable());
+   }
+
+   public static List<String> build(Path serverJar, String javaExecutable) {
       return build(
          serverJar,
          System.getProperty("sun.java.command", ""),
          System.getProperty("java.class.path", ""),
          ManagementFactory.getRuntimeMXBean().getInputArguments(),
-         javaExecutable()
+         javaExecutable
       );
    }
 

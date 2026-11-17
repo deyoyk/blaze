@@ -2,6 +2,7 @@ package org.bukkit.craftbukkit;
 
 import lol.deyo.blaze.Blaze;
 import lol.deyo.blaze.console.ConsoleBanner;
+import lol.deyo.blaze.utils.JavaRuntime;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -158,6 +159,17 @@ public class Main {
                useJline = false;
                System.setProperty("terminal.jline", "false");
             }
+
+            File pluginsDirectory = new File("plugins");
+            try {
+               Object configured = options.valueOf("plugins");
+               if (configured instanceof File) {
+                  pluginsDirectory = (File)configured;
+               }
+            } catch (RuntimeException ignored) {
+            }
+
+            JavaRuntime.maybeRelaunch(pluginsDirectory);
 
             new Blaze();
             System.setProperty("library.jansi.version", "Blaze");
